@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>货源广场-卡世界开放平台</title>
+<meta name="keywords" content="卡券货源,会员权益货源,影视会员底价,卡世界货源广场" />
+<meta name="description" content="卡世界开放平台货源广场：爱奇艺、腾讯视频、饿了么、网盘会员、电影票等 200+ 卡券货源实时底价与佣金展示，公开可查。" />
+<link rel="icon" href="../assets/logo-icon.png" />
+<link rel="stylesheet" href="open-common.css" />
+<style>
+  .market-banner { position: relative; background: linear-gradient(217deg, #9baffe, #9cc6ff 20%, #bed4ff 47%, #ace1ff 71%, #fff 99%); }
+  .market-banner:after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 120px; background: linear-gradient(180deg, rgba(255,255,255,0), #fff); pointer-events: none; }
+  .market-banner-inner { width: 1200px; margin: 0 auto; padding: 48px 0 56px; }
+  .market-banner h1 { font-size: 32px; font-weight: 700; }
+  .market-banner p { margin-top: 10px; font-size: 15px; color: #3d3d3d; }
+
+  .market-body { width: 1200px; margin: 40px auto 0; display: flex; align-items: flex-start; gap: 28px; }
+
+  /* 左侧分类 */
+  .cat-side { width: 220px; flex: none; background: #fff; border: 1px solid #eef1f6; border-radius: 14px; padding: 14px 0; position: sticky; top: 84px; }
+  .cat-side-title { font-size: 14px; font-weight: 700; color: #86909c; padding: 8px 20px 12px; }
+  .cat-item { display: flex; align-items: center; justify-content: space-between; padding: 11px 20px; font-size: 14px; color: #1d1d1f; cursor: pointer; border-left: 3px solid transparent; transition: all .15s; }
+  .cat-item:hover { color: #165dff; background: #f5f8ff; }
+  .cat-item.active { color: #165dff; font-weight: 700; background: #eaf1ff; border-left-color: #165dff; }
+  .cat-item .cnt { font-size: 12px; color: #a9aeb8; font-weight: 400; }
+  .cat-item.active .cnt { color: #165dff; }
+
+  /* 商品区 */
+  .goods-main { flex: 1; min-width: 0; }
+  .goods-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .goods-total { font-size: 14px; color: #86909c; }
+  .goods-total b { color: #165dff; font-size: 16px; }
+  .goods-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .goods-card { background: #fff; border: 1px solid #eef1f6; border-radius: 14px; overflow: hidden; transition: all .2s; display: flex; flex-direction: column; }
+  .goods-card:hover { box-shadow: 0 10px 28px rgba(22,93,255,.10); transform: translateY(-3px); border-color: #dbe7ff; }
+  .goods-img-wrap { width: 100%; aspect-ratio: 1/1; height: 0; padding-bottom: 100%; position: relative; background: #f5f7fa; overflow: hidden; }
+  .goods-img-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .goods-face { position: absolute; left: 10px; top: 10px; background: rgba(22,93,255,.92); color: #fff; font-size: 12px; border-radius: 6px; padding: 3px 9px; }
+  .goods-info { padding: 14px 14px 16px; display: flex; flex-direction: column; flex: 1; }
+  .goods-name-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; height: 42px; }
+  .goods-name { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; color: #1d1d1f; line-height: 21px; height: 42px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .goods-id { flex: none; font-size: 11px; color: #a9aeb8; line-height: 21px; font-weight: 400; }
+  .goods-tabs { margin-top: 8px; min-height: 36px; }
+  .goods-tabs span { display: inline-block; font-size: 11px; color: #86909c; background: #f5f7fa; border-radius: 4px; padding: 3px 8px; margin: 0 6px 6px 0; }
+  .goods-tags { margin-top: 2px; display: flex; flex-wrap: nowrap; overflow: hidden; gap: 6px; }
+  .goods-tags span { flex: none; font-size: 11px; color: #165dff; background: #eaf1ff; border-radius: 4px; padding: 3px 8px; white-space: nowrap; }
+  .goods-price-row { margin-top: auto; padding-top: 10px; display: flex; align-items: flex-end; justify-content: space-between; }
+  .goods-price { color: #f53f3f; font-weight: 800; font-size: 20px; line-height: 24px; }
+  .goods-price .cur { font-size: 12px; margin-right: 1px; }
+  .goods-price .lbl { font-size: 11px; color: #a9aeb8; font-weight: 400; display: block; line-height: 16px; }
+  .goods-broker { text-align: right; }
+  .goods-broker .lbl { font-size: 11px; color: #a9aeb8; display: block; line-height: 16px; }
+  .goods-broker .num { font-size: 20px; color: #ff7d00; font-weight: 800; line-height: 24px; display: block; }
+  .goods-stock { margin-top: 8px; font-size: 12px; color: #a9aeb8; }
+  .goods-stock b { color: #00b42a; font-weight: 700; }
+
+  /* 分页 */
+  .pager { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 36px 0 10px; }
+  .pager button { min-width: 36px; height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid #e5e6eb; background: #fff; font-size: 13px; color: #1d1d1f; cursor: pointer; transition: all .15s; }
+  .pager button:hover:not([disabled]) { border-color: #165dff; color: #165dff; }
+  .pager button.cur { background: #165dff; border-color: #165dff; color: #fff; font-weight: 700; }
+  .pager button[disabled] { opacity: .45; cursor: not-allowed; }
+
+  @media (max-width: 1240px) {
+    .market-banner-inner, .market-body { width: 92%; }
+    .goods-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 900px) {
+    .market-body { flex-direction: column; }
+    .cat-side { width: 100%; position: static; display: flex; flex-wrap: wrap; padding: 10px; }
+    .cat-side-title { width: 100%; }
+    .cat-item { border-left: none; border-radius: 8px; padding: 8px 14px; }
+    .goods-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div id="op-header-mount"></div>
+
+<section class="market-banner">
+  <div class="market-banner-inner">
+    <h1>货源广场</h1>
+    <p>200+ 卡券货源实时底价公开 · 佣金透明 · 注册即可 API 接入自动发货</p>
+  </div>
+</section>
+
+<div class="market-body">
+  <!-- 左侧分类 -->
+  <aside class="cat-side">
+    <div class="cat-side-title">货源分类</div>
+    <div id="cat-list">
+      <div class="cat-item active" data-id="">全部货源</div>
+      <div class="op-loading" style="padding:20px 0;"><span class="op-spinner"></span>分类加载中...</div>
+    </div>
+    <div id="update-time" style="padding:14px 20px 8px;font-size:11px;color:#a9aeb8;line-height:16px;border-top:1px solid #f5f6f8;margin-top:10px;"></div>
+  </aside>
+
+  <!-- 商品区 -->
+  <main class="goods-main">
+    <div class="goods-toolbar">
+      <div class="goods-total" id="goods-total">正在加载货源...</div>
+    </div>
+    <div class="goods-grid" id="goods-grid"></div>
+    <div class="pager" id="pager"></div>
+    <div id="goods-state"></div>
+  </main>
+</div>
+
+<div id="op-footer-mount"></div>
+
+<script src="open-common.js"></script>
+<script>
+  OP.renderHeader('market');
+  OP.renderFooter();
+
+  var state = { categoryId: '', current: 1, size: 20, pages: 1 };
+  var grid = document.getElementById('goods-grid');
+  var stateBox = document.getElementById('goods-state');
+  var totalBox = document.getElementById('goods-total');
+  var pager = document.getElementById('pager');
+
+  /* ===== 快照数据（本地 market-data-v1.json 直出，失败回退实时接口） ===== */
+  var snap = null; // 快照数据 {categories, goods, updated_time}
+
+  function dayKey() {
+    var d = new Date();
+    function p(x) { return x < 10 ? '0' + x : x; }
+    return '' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate());
+  }
+
+  function renderCats(cats) {
+    // 按名字排除「热门推荐」分类（2026-10-20 巍哥要求）
+    cats = (cats || []).filter(function (c) { return c.name !== '热门推荐'; });
+    var html = '<div class="cat-item active" data-id="">全部货源</div>';
+    html += cats.map(function (c) {
+      return '<div class="cat-item" data-id="' + c.category_id + '">' +
+        '<span>' + OP.escapeHtml(c.name) + '</span>' +
+        '<span class="cnt">' + (c.goods_total || 0) + '</span></div>';
+    }).join('');
+    document.getElementById('cat-list').innerHTML = html;
+  }
+
+  /* 快照模式：一次性渲染（内存过滤，不发请求、不分页） */
+  function renderSnapshotGoods() {
+    var list = snap.goods || [];
+    if (state.categoryId) {
+      var map = snap.cat_map || {};
+      list = list.filter(function (g) {
+        var cid = String(g.category_id);
+        return cid === String(state.categoryId) || String(map[cid]) === String(state.categoryId);
+      });
+    }
+    totalBox.innerHTML = '共 <b>' + list.length + '</b> 个在售货源';
+    if (!list.length) {
+      grid.innerHTML = '';
+      stateBox.innerHTML = '<div class="op-empty">该分类下暂无在售货源</div>';
+      return;
+    }
+    stateBox.innerHTML = '';
+    grid.innerHTML = list.map(goodsCard).join('');
+  }
+
+  function bootSnapshot() {
+    return fetch('market-data-v1.json?t=' + dayKey())
+      .then(function (res) {
+        if (!res.ok) throw new Error('快照数据拉取失败');
+        return res.json();
+      })
+      .then(function (d) {
+        if (!d || !d.goods || !d.goods.length) throw new Error('快照数据为空');
+        snap = d;
+        // 分类计数按快照实有商品计算（接口 goods_total 含已下架/历史商品，与实际展示不符）
+        var map = d.cat_map || {};
+        var cnt = {};
+        (d.goods || []).forEach(function (g) {
+          var top = map[String(g.category_id)] || g.category_id;
+          cnt[top] = (cnt[top] || 0) + 1;
+        });
+        var cats = (d.categories || []).map(function (c) {
+          c.goods_total = cnt[c.category_id] || 0;
+          return c;
+        });
+        renderCats(cats);
+        document.getElementById('update-time').textContent = '数据更新于 ' + (d.updated_time || '未知');
+        renderSnapshotGoods();
+      });
+  }
+
+  /* ===== 分类（快照不可用时的回退：仅全部货源） ===== */
+  function loadCatsLive() {
+    document.getElementById('cat-list').innerHTML = '<div class="cat-item active" data-id="">全部货源</div>';
+  }
+
+  document.getElementById('cat-list').addEventListener('click', function (e) {
+    var item = e.target.closest('.cat-item');
+    if (!item) return;
+    document.querySelectorAll('#cat-list .cat-item').forEach(function (el) { el.classList.remove('active'); });
+    item.classList.add('active');
+    state.categoryId = item.getAttribute('data-id') || '';
+    state.current = 1;
+    if (snap) {
+      renderSnapshotGoods();
+    } else {
+      loadGoods();
+    }
+  });
+
+  /* ===== 商品 ===== */
+  function goodsCard(g) {
+    var tags = (g.tags || []).slice(0, 3).map(function (t) { return '<span>' + OP.escapeHtml(t) + '</span>'; }).join('');
+    var broker = Number(g.brokerage) > 0 ? OP.fen2yuan(g.brokerage) : null;
+    return '<div class="goods-card">' +
+      '<div class="goods-img-wrap">' +
+      '<img src="' + OP.escapeHtml(g.goods_img || '') + '" alt="' + OP.escapeHtml(g.goods_name || '') + '" loading="lazy" onerror="this.style.visibility=\'hidden\'" />' +
+      (g.face_value ? '<span class="goods-face">面值 ' + OP.escapeHtml(g.face_value) + '元</span>' : '') +
+      '</div>' +
+      '<div class="goods-info">' +
+      '<div class="goods-name-row"><div class="goods-name">' + OP.escapeHtml(g.goods_name || '') + '</div>' +
+      (g.goods_id != null ? '<span class="goods-id">ID ' + OP.escapeHtml(g.goods_id) + '</span>' : '') + '</div>' +
+      (tags ? '<div class="goods-tags">' + tags + '</div>' : '') +
+      '<div class="goods-price-row">' +
+      '<div class="goods-price"><span class="lbl">供货底价</span><span class="cur">¥</span>' + OP.escapeHtml(g.goods_price != null ? g.goods_price : '--') + '</div>' +
+      '<div class="goods-broker">' + (broker ? '<span class="lbl">推广佣金</span><span class="num">¥' + broker + '</span>' : '') + '</div>' +
+      '</div>' +
+      '</div></div>';
+  }
+
+  function renderPager(pagination) {
+    if (!pagination || pagination.pages <= 1) { pager.innerHTML = ''; return; }
+    var cur = pagination.current, pages = pagination.pages;
+    var btns = [];
+    btns.push('<button data-p="' + (cur - 1) + '"' + (cur <= 1 ? ' disabled' : '') + '>上一页</button>');
+    var nums = [];
+    for (var i = 1; i <= pages; i++) {
+      if (i === 1 || i === pages || Math.abs(i - cur) <= 2) nums.push(i);
+    }
+    var last = 0;
+    nums.forEach(function (i) {
+      if (i - last > 1) btns.push('<button disabled>…</button>');
+      btns.push('<button data-p="' + i + '"' + (i === cur ? ' class="cur"' : '') + '>' + i + '</button>');
+      last = i;
+    });
+    btns.push('<button data-p="' + (cur + 1) + '"' + (cur >= pages ? ' disabled' : '') + '>下一页</button>');
+    pager.innerHTML = btns.join('');
+  }
+
+  pager.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-p]');
+    if (!btn || btn.disabled) return;
+    state.current = Number(btn.getAttribute('data-p'));
+    loadGoods();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  function loadGoods() {
+    grid.innerHTML = '';
+    pager.innerHTML = '';
+    stateBox.innerHTML = '<div class="op-loading"><span class="op-spinner"></span>货源加载中...</div>';
+    totalBox.textContent = '正在加载货源...';
+    OP.goodsApi('/goods', { category_id: state.categoryId, current: state.current, size: state.size })
+      .then(function (d) {
+        stateBox.innerHTML = '';
+        var list = (d && d.list) || [];
+        // v1 接口金额为分，转为元供卡片展示
+        list.forEach(function (g) { g.goods_price = OP.fen2yuan(g.cost_price); });
+        var p = d && d.pagination;
+        state.pages = p ? p.pages : 1;
+        totalBox.innerHTML = '共 <b>' + (p ? p.total : list.length) + '</b> 个在售货源';
+        if (!list.length) {
+          stateBox.innerHTML = '<div class="op-empty">该分类下暂无在售货源</div>';
+          return;
+        }
+        grid.innerHTML = list.map(goodsCard).join('');
+        renderPager(p);
+      })
+      .catch(function (err) {
+        grid.innerHTML = '';
+        totalBox.textContent = '货源加载失败';
+        stateBox.innerHTML = '<div class="op-error-box">' + OP.escapeHtml(err.message || '货源数据加载失败') + '<br /><a href="javascript:location.reload();" style="color:#165dff;text-decoration:underline;">点击重试</a></div>';
+      });
+  }
+
+  /* ===== 启动：本地快照优先直出，拉取失败回退实时接口 ===== */
+  bootSnapshot().catch(function () {
+    snap = null;
+    document.getElementById('update-time').textContent = '';
+    loadCatsLive();
+    loadGoods();
+  });
+</script>
+</body>
+</html>

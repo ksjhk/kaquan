@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>控制台-卡世界开放平台</title>
+<meta name="description" content="卡世界开放平台控制台：仪表盘、API 密钥管理、调用记录、个人资料与邀请链接。" />
+<link rel="icon" href="../assets/logo-icon.png" />
+<link rel="stylesheet" href="open-common.css" />
+<style>
+  body { background: #f5f7fa; }
+  /* 顶栏 */
+  .console-top { background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,.06); position: sticky; top: 0; z-index: 100; }
+  .console-top-inner { width: 100%; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; }
+  .console-top .op-logo img { height: 32px; }
+  .console-top .op-logo .op-logo-text { font-size: 18px; }
+  .top-right { display: flex; align-items: center; gap: 18px; }
+  .top-balance { font-size: 13px; color: #86909c; background: #f7f9ff; border: 1px solid #e8eeff; border-radius: 9999px; padding: 7px 16px; }
+  .top-balance b { color: #f53f3f; font-size: 15px; margin-left: 4px; }
+  .top-user { display: flex; align-items: center; gap: 8px; }
+  .top-avatar { width: 34px; height: 34px; border-radius: 50%; background: #eef3ff; border: 1px solid #e8eeff; color: #fff; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .top-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .top-name { font-size: 14px; font-weight: 700; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .top-logout { font-size: 13px; color: #86909c; cursor: pointer; }
+  .top-logout:hover { color: #f53f3f; }
+  /* 公告铃铛 */
+  .top-bell { position: relative; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 50%; flex: none; }
+  .top-bell:hover { background: #f2f3f5; }
+  .top-bell svg { width: 20px; height: 20px; fill: #545454; }
+  .bell-dot { position: absolute; top: 5px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: #f53f3f; }
+  .notice-panel { display: none; position: fixed; top: 72px; right: 24px; width: 360px; max-width: 92vw; max-height: 72vh; overflow-y: auto; background: #fff; border-radius: 14px; box-shadow: 0 16px 48px rgba(0,0,0,.16); z-index: 500; padding: 18px 20px; }
+  .notice-panel.show { display: block; }
+  .notice-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .notice-item { padding: 12px 0; border-bottom: 1px solid #f5f6f8; }
+  .notice-item:last-child { border-bottom: none; }
+  .notice-item .nt { font-size: 14px; font-weight: 700; color: #1d1d1f; }
+  .notice-item .nm { font-size: 11px; color: #a9aeb8; margin-top: 3px; }
+  .notice-item .nc { font-size: 13px; color: #545454; line-height: 22px; margin-top: 6px; white-space: pre-wrap; word-break: break-word; }
+  .notice-admin-form { background: #f7f9ff; border: 1px solid #e8eeff; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+  .notice-admin-form input { width: 100%; height: 38px; border: 1px solid #e5e6eb; border-radius: 8px; padding: 0 12px; font-size: 13px; outline: none; box-sizing: border-box; margin-bottom: 10px; }
+  .notice-admin-form textarea { width: 100%; min-height: 70px; border: 1px solid #e5e6eb; border-radius: 8px; padding: 8px 12px; font-size: 13px; outline: none; box-sizing: border-box; resize: vertical; margin-bottom: 10px; font-family: inherit; }
+  .notice-admin-form input:focus, .notice-admin-form textarea:focus { border-color: #165dff; }
+
+  .console-body { width: 100%; margin: 0; display: block; padding: 24px 28px 60px 248px; box-sizing: border-box; }
+  /* 侧边栏：fixed 吸附贴左 */
+  .console-side { width: 220px; background: #fff; padding: 14px 0; position: fixed; left: 0; top: 64px; height: calc(100vh - 64px); overflow-y: auto; box-shadow: 2px 0 12px rgba(0,0,0,.04); }
+  .side-item { display: flex; align-items: center; padding: 12px 20px; font-size: 14px; color: #1d1d1f; cursor: pointer; border-left: 3px solid transparent; transition: all .15s; }
+  .side-item svg { width: 16px; height: 16px; margin-right: 10px; fill: #86909c; }
+  .side-item:hover { color: #165dff; background: #f5f8ff; }
+  .side-item.active { color: #165dff; font-weight: 700; background: #eaf1ff; border-left-color: #165dff; }
+  .side-item.active svg { fill: #165dff; }
+
+  /* 主区 */
+  .console-main { flex: 1; min-width: 0; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .card { background: #fff; border-radius: 14px; padding: 26px 28px; margin-bottom: 20px; }
+  .card-title { font-size: 16px; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; }
+
+  /* 仪表盘 */
+  .stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .stat-card { background: linear-gradient(160deg, #f2f7ff, #fff); border: 1px solid #e8eeff; border-radius: 14px; padding: 20px; }
+  .stat-card .num { font-size: 26px; font-weight: 800; color: #165dff; line-height: 34px; word-break: break-all; }
+  .stat-card .num.red { color: #f53f3f; }
+  .stat-card .lbl { font-size: 13px; color: #86909c; margin-top: 4px; }
+
+  /* 表格 */
+  .op-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .op-table th { background: #f7f8fa; text-align: left; padding: 11px 12px; color: #1d1d1f; font-weight: 700; white-space: nowrap; }
+  .op-table td { padding: 12px; border-top: 1px solid #f0f1f5; color: #545454; line-height: 20px; word-break: break-all; }
+  .tag-status { display: inline-block; font-size: 12px; border-radius: 4px; padding: 2px 10px; }
+  .tag-on { color: #00b42a; background: #e8ffea; }
+  .tag-off { color: #a9aeb8; background: #f2f3f5; }
+  .mini-btn { font-size: 12px; border-radius: 6px; padding: 5px 12px; cursor: pointer; border: 1px solid #e5e6eb; background: #fff; color: #1d1d1f; transition: all .15s; }
+  .mini-btn:hover:not([disabled]) { border-color: #165dff; color: #165dff; }
+  .mini-btn.danger:hover:not([disabled]) { border-color: #f53f3f; color: #f53f3f; }
+  .mini-btn[disabled] { opacity: .5; cursor: not-allowed; }
+  .copy-mini { padding: 2px 8px; font-size: 11px; margin-left: 6px; vertical-align: middle; }
+
+  /* 表单 */
+  .cform-item { margin-bottom: 16px; }
+  .cform-item label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .cform-item input { width: 320px; max-width: 100%; height: 42px; border: 1px solid #e5e6eb; border-radius: 8px; padding: 0 12px; font-size: 14px; outline: none; }
+  .cform-item input:focus { border-color: #165dff; }
+
+  /* 充值提示 */  
+  .pay-note { background: #eaf1ff; border-left: 3px solid #165dff; border-radius: 0 8px 8px 0; padding: 12px 16px; font-size: 13px; color: #3d3d3d; line-height: 24px; margin-bottom: 20px; }
+
+  /* 资料 */
+  .profile-row { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid #f5f6f8; font-size: 14px; }
+  .profile-row:last-child { border-bottom: none; }
+  .profile-row .k { width: 120px; color: #86909c; flex: none; }
+  .profile-row .v { color: #1d1d1f; }
+  .profile-avatar-lg { width: 64px; height: 64px; border-radius: 50%; background: #eef3ff; border: 1px solid #e8eeff; color: #fff; font-size: 26px; font-weight: 700; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .profile-avatar-lg img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* 邀请 */
+  .invite-link-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .invite-link-row input { flex: 1; min-width: 280px; height: 44px; border: 1px solid #e5e6eb; border-radius: 10px; padding: 0 14px; font-size: 13px; color: #165dff; background: #f7f9ff; }
+
+  /* API 端点展示行（仪表盘/密钥区复用） */
+  .endpoint-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: #f7f9ff; border: 1px solid #e8eeff; border-radius: 10px; padding: 12px 16px; margin-bottom: 18px; }
+  .endpoint-row .ep-lbl { font-size: 13px; font-weight: 700; color: #86909c; flex: none; }
+  .endpoint-row code { flex: 1; min-width: 200px; font-family: Menlo, Monaco, Consolas, monospace; font-size: 13px; color: #165dff; word-break: break-all; }
+  /* 快速开始流程图 */
+  .flow { display: flex; align-items: stretch; margin-top: 18px; }
+  .flow-step { flex: 1; min-width: 0; background: linear-gradient(160deg, #f7faff, #fff); border: 1px solid #e8eeff; border-radius: 12px; padding: 18px 14px; text-align: center; }
+  .flow-icon { width: 42px; height: 42px; border-radius: 10px; background: #eaf1ff; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; }
+  .flow-icon svg { width: 21px; height: 21px; fill: #165dff; }
+  .flow-step h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .flow-step p { font-size: 12px; color: #86909c; line-height: 20px; }
+  .flow-step a { color: #165dff; }
+  .flow-arrow { flex: none; width: 30px; display: flex; align-items: center; justify-content: center; }
+  .flow-arrow svg { width: 18px; height: 18px; fill: #c9d8ff; }
+
+  /* 弹窗 */
+  .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 1000; display: none; align-items: center; justify-content: center; }
+  .modal-mask.show { display: flex; }
+  .modal-box { width: 460px; max-width: 92%; background: #fff; border-radius: 16px; padding: 30px; }
+  .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 18px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+  .secret-show { background: #f7f9ff; border: 1px dashed #165dff; border-radius: 10px; padding: 16px; margin: 12px 0; }
+  .secret-show .row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin: 8px 0; }
+  .secret-show code { font-family: Menlo, Monaco, Consolas, monospace; color: #165dff; word-break: break-all; }
+
+  .pager2 { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 16px; }
+  .pager2 button { min-width: 32px; height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid #e5e6eb; background: #fff; font-size: 12px; cursor: pointer; }
+  .pager2 button.cur { background: #165dff; border-color: #165dff; color: #fff; }
+  .pager2 button[disabled] { opacity: .45; cursor: not-allowed; }
+
+  /* 余额充值 */
+  .amount-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .amount-opt { min-width: 100px; height: 44px; padding: 0 20px; border-radius: 10px; border: 1px solid #e5e6eb; background: #fff; font-size: 15px; font-weight: 700; color: #1d1d1f; cursor: pointer; transition: all .15s; }
+  .amount-opt.sel { border-color: #165dff; color: #165dff; background: #eaf1ff; }
+  .amount-custom { display: flex; align-items: center; gap: 8px; }
+  .amount-custom input { width: 160px; height: 44px; border: 1px solid #e5e6eb; border-radius: 10px; padding: 0 12px; font-size: 15px; outline: none; }
+  .amount-custom input:focus { border-color: #165dff; }
+  .pay-type-row { display: flex; gap: 16px; margin-bottom: 20px; }
+  .pay-type-btn { flex: 1; max-width: 260px; height: 56px; border-radius: 12px; border: 2px solid #e5e6eb; background: #fff; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all .15s; }
+  .pay-type-btn .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .pay-type-btn.sel-wechat { border-color: #07c160; color: #07c160; background: #f0fbf5; }
+  .pay-type-btn.sel-alipay { border-color: #1677ff; color: #1677ff; background: #f0f6ff; }
+  .qr-area { display: none; border: 1px dashed #c9d8ff; border-radius: 14px; padding: 26px; text-align: center; background: #fafbff; }
+  .qr-area.show { display: block; }
+  .qr-box { display: inline-block; padding: 12px; background: #fff; border: 1px solid #eef1f6; border-radius: 10px; }
+  .qr-box img { display: block; }
+  .qr-tip { margin-top: 14px; font-size: 14px; font-weight: 700; color: #1d1d1f; }
+  .qr-tip.wechat { color: #07c160; }
+  .qr-tip.alipay { color: #1677ff; }
+  .qr-order { margin-top: 6px; font-size: 12px; color: #a9aeb8; font-family: Menlo, Monaco, Consolas, monospace; }
+  .qr-status { margin-top: 12px; font-size: 13px; color: #86909c; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .qr-status .polling { display: inline-block; width: 14px; height: 14px; border: 2px solid #c9d8ff; border-top-color: #165dff; border-radius: 50%; animation: op-spin .8s linear infinite; }
+  .qr-success { display: none; margin-top: 12px; font-size: 15px; font-weight: 700; color: #00b42a; align-items: center; justify-content: center; gap: 8px; }
+  .qr-success.show { display: flex; }
+  .qr-success .check { width: 22px; height: 22px; border-radius: 50%; background: #00b42a; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; }
+  .qr-closed { display: none; margin-top: 12px; font-size: 13px; color: #f53f3f; }
+  .qr-closed.show { display: block; }
+  .admin-filter { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .admin-filter select { height: 36px; border: 1px solid #e5e6eb; border-radius: 8px; padding: 0 10px; font-size: 13px; outline: none; }
+
+  @media (max-width: 1240px) {
+    .stat-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 900px) {
+    .console-top-inner { padding: 0 14px; }
+    .console-body { padding: 0 0 40px; }
+    .console-main { padding: 16px 14px 0; }
+    /* 侧栏改顶部横向 tab 条，可横滚 */
+    .console-side { position: static; width: 100%; height: auto; display: flex; overflow-x: auto; padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    .console-side .side-item { flex: none; white-space: nowrap; padding: 12px 16px; border-left: none; border-bottom: 3px solid transparent; }
+    .console-side .side-item svg { margin-right: 6px; }
+    .console-side .side-item.active { border-bottom-color: #165dff; background: transparent; }
+    #admin-side-group > div:first-child { display: none; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    /* 流程图纵向 */
+    .flow { flex-direction: column; gap: 0; }
+    .flow-arrow { width: 100%; height: 26px; }
+    .flow-arrow svg { transform: rotate(90deg); }
+    /* 公告面板 */
+    .notice-panel { right: 3vw; top: 64px; }
+    .top-balance { display: none; }
+    .card { padding: 20px 16px; }
+    /* 邀请链接行：输入框占整行，按钮换行 */
+    .profile-row .k { width: 90px; }
+    .invite-link-row { min-width: 0; }
+    .invite-link-row input { flex: 1 1 100%; min-width: 0; }
+    /* 含宽表格的卡片移动端横向滚动 */
+    .panel .card { overflow-x: auto; }
+    .panel .op-table { min-width: 560px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 顶栏 -->
+<header class="console-top">
+  <div class="console-top-inner">
+    <a class="op-logo" href="index.html">
+      <img src="../assets/logo-icon.png" alt="卡世界" />
+      <span class="op-logo-text">卡世界</span>
+      <span class="op-logo-badge">开放平台 · 控制台</span>
+    </a>
+    <div class="top-right">
+      <div class="top-balance">余额<b id="top-balance">--</b> 元</div>
+      <div class="top-bell" id="top-bell" title="平台公告">
+        <svg viewBox="0 0 1024 1024"><path d="M512 96c-159 0-288 129-288 288v160l-72 168c-8 19 6 40 27 40h666c21 0 35-21 27-40l-72-168V384c0-159-129-288-288-288zm0 832c-53 0-96-43-96-96h192c0 53-43 96-96 96z"/></svg>
+        <span class="bell-dot" id="bell-dot" style="display:none;"></span>
+      </div>
+      <div class="top-user">
+        <div class="top-avatar" id="top-avatar">·</div>
+        <span class="top-name" id="top-name">--</span>
+      </div>
+      <span class="top-logout" id="btn-logout">退出</span>
+    </div>
+  </div>
+</header>
+
+<!-- 平台公告面板 -->
+<div class="notice-panel" id="notice-panel">
+  <div class="notice-title">平台公告</div>
+  <div class="notice-admin-form" id="notice-admin-form" style="display:none;">
+    <input type="text" id="na-title" maxlength="50" placeholder="公告标题" />
+    <textarea id="na-content" maxlength="500" placeholder="公告内容"></textarea>
+    <button class="op-btn op-btn-blue" id="na-submit" style="height:36px;font-size:13px;">发布公告</button>
+  </div>
+  <div id="notice-list"><div class="op-loading"><span class="op-spinner"></span>公告加载中...</div></div>
+</div>
+
+<div class="console-body">
+  <!-- 侧边栏 -->
+  <aside class="console-side">
+    <div class="side-item active" data-panel="dashboard">
+      <svg viewBox="0 0 1024 1024"><path d="M128 128h320v384H128zM128 576h320v320H128zM512 128h384v320H512zM512 512h384v384H512z"/></svg>
+      仪表盘
+    </div>
+    <div class="side-item" data-panel="recharge">
+      <svg viewBox="0 0 1024 1024"><path d="M512 64C264 64 64 264 64 512s200 448 448 448 448-200 448-448S760 64 512 64zm32 224v96h96c17.6 0 32 14.4 32 32s-14.4 32-32 32h-96v192h96c17.6 0 32 14.4 32 32s-14.4 32-32 32h-96v96c0 17.6-14.4 32-32 32s-32-14.4-32-32v-96h-96c-17.6 0-32-14.4-32-32s14.4-32 32-32h96V448h-96c-17.6 0-32-14.4-32-32s14.4-32 32-32h96v-96c0-17.6 14.4-32 32-32s32 14.4 32 32z"/></svg>
+      余额充值
+    </div>
+    <div class="side-item" data-panel="apikey">
+      <svg viewBox="0 0 1024 1024"><path d="M688 64a272 272 0 1 0 0 544 272 272 0 0 0 0-544zm0 176a96 96 0 1 1 0 192 96 96 0 0 1 0-192zM432 496l64 64-352 352-96-96v-64l384-256z"/></svg>
+      API密钥
+    </div>
+    <div class="side-item" data-panel="logs">
+      <svg viewBox="0 0 1024 1024"><path d="M256 128h512v64H256zM256 448h512v64H256zM256 768h320v64H256zM128 64h768v896H128z" fill-rule="evenodd"/></svg>
+      使用记录
+    </div>
+    <div class="side-item" data-panel="profile">
+      <svg viewBox="0 0 1024 1024"><path d="M512 512a192 192 0 1 0 0-384 192 192 0 0 0 0 384zm0 64c-141.4 0-384 70.6-384 224v64c0 35.3 28.7 64 64 64h640c35.3 0 64-28.7 64-64v-64c0-153.4-242.6-224-384-224z"/></svg>
+      个人资料
+    </div>
+    <div class="side-item" data-panel="invite">
+      <svg viewBox="0 0 1024 1024"><path d="M832 320H608c17.6-46.4 6.4-100.8-32-137.6C531.2 137.6 464 137.6 419.2 182.4 374.4 227.2 374.4 294.4 419.2 339.2 454.4 374.4 508.8 384 560 368v96H352c-35.2 0-64 28.8-64 64v320c0 35.2 28.8 64 64 64h480c35.2 0 64-28.8 64-64V384c0-35.2-28.8-64-64-64zM480 240c0-26.4 21.6-48 48-48s48 21.6 48 48-21.6 48-48 48-48-21.6-48-48zM192 608h64v64h-64zM128 608h64v64h-64z"/></svg>
+      注册邀请
+    </div>
+    <div id="admin-side-group" style="display:none;">
+      <div style="font-size:12px;font-weight:700;color:#a9aeb8;padding:14px 20px 6px;">管理员</div>
+      <div class="side-item" data-panel="admin-recharges">
+        <svg viewBox="0 0 1024 1024"><path d="M864 192H160c-35.2 0-64 28.8-64 64v512c0 35.2 28.8 64 64 64h704c35.2 0 64-28.8 64-64V256c0-35.2-28.8-64-64-64zm-32 96v64H192v-64h640zM192 736V544h288v192H192z"/></svg>
+        充值管理
+      </div>
+      <div class="side-item" data-panel="admin-users">
+        <svg viewBox="0 0 1024 1024"><path d="M352 512a160 160 0 1 0 0-320 160 160 0 0 0 0 320zm0 64c-118.4 0-320 58.6-320 186.6V800c0 35.2 28.8 64 64 64h512c35.2 0 64-28.8 64-64v-37.4C672 634.6 470.4 576 352 576zm416-320a128 128 0 1 1-128 128h128zM736 576c-17.6 0-34.6 1.6-50.6 4.8C723.2 616 736 660.8 736 704v96h192c35.2 0 64-28.8 64-64v-16c0-96-160-144-256-144z"/></svg>
+        用户与余额
+      </div>
+    </div>
+    <a class="side-item" href="market.html" style="text-decoration:none;">
+      <svg viewBox="0 0 1024 1024"><path d="M128 384h768l-64-256H192l-64 256zm0 64v448h320V640h128v256h320V448H128z"/></svg>
+      货源广场
+    </a>
+  </aside>
+
+  <!-- 主区 -->
+  <main class="console-main">
+
+    <!-- 仪表盘 -->
+    <section class="panel active" id="panel-dashboard">
+      <div class="card">
+        <div class="card-title">数据总览</div>
+        <div id="dash-state"><div class="op-loading"><span class="op-spinner"></span>数据加载中...</div></div>
+        <div class="stat-grid" id="dash-grid" style="display:none;">
+          <div class="stat-card"><div class="num red" id="d-balance">--</div><div class="lbl">账户余额（元）</div><button class="mini-btn" id="btn-goto-recharge" style="margin-top:10px;border-color:#165dff;color:#165dff;">充值</button></div>
+          <div class="stat-card"><div class="num" id="d-today">--</div><div class="lbl">今日调用</div></div>
+          <div class="stat-card"><div class="num" id="d-total">--</div><div class="lbl">累计调用</div></div>
+          <div class="stat-card"><div class="num" id="d-keys">--</div><div class="lbl">密钥数</div></div>
+          <div class="stat-card"><div class="num" id="d-invites">--</div><div class="lbl">邀请人数</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">快速开始</div>
+        <div class="endpoint-row">
+          <span class="ep-lbl">API 端点</span>
+          <code>https://your-domain.com/open-api/v1</code>
+          <button class="mini-btn" data-copy-ep style="flex:none;">复制</button>
+        </div>
+        <div class="flow">
+          <div class="flow-step">
+            <div class="flow-icon"><svg viewBox="0 0 1024 1024"><path d="M512 512a176 176 0 1 0 0-352 176 176 0 0 0 0 352zm0 96c-190 0-352 104-352 240v64h704v-64c0-136-162-240-352-240z"/></svg></div>
+            <h4>注册账号</h4>
+            <p>免费注册开放平台账号</p>
+          </div>
+          <div class="flow-arrow"><svg viewBox="0 0 1024 1024"><path d="M384 192l-72 72 264 264-264 264 72 72 336-336z"/></svg></div>
+          <div class="flow-step">
+            <div class="flow-icon"><svg viewBox="0 0 1024 1024"><path d="M688 64a288 288 0 0 0-268 388L120 752v208h208v-96h96v-96h96v-72l88-88A288 288 0 1 0 688 64zm-16 288a80 80 0 1 1 0-160 80 80 0 0 1 0 160z"/></svg></div>
+            <h4>创建密钥</h4>
+            <p>在「API密钥」创建 AppKey / AppSecret</p>
+          </div>
+          <div class="flow-arrow"><svg viewBox="0 0 1024 1024"><path d="M384 192l-72 72 264 264-264 264 72 72 336-336z"/></svg></div>
+          <div class="flow-step">
+            <div class="flow-icon"><svg viewBox="0 0 1024 1024"><path d="M368 224L112 512l256 288 64-72-192-216 192-216-64-72zm288 0l-64 72 192 216-192 216 64 72 256-288-256-288z"/></svg></div>
+            <h4>签名调用</h4>
+            <p>参照 <a href="docs.html">API 文档</a> 拼 sign 调接口，到 <a href="market.html">货源广场</a> 查看实时底价与佣金</p>
+          </div>
+          <div class="flow-arrow"><svg viewBox="0 0 1024 1024"><path d="M384 192l-72 72 264 264-264 264 72 72 336-336z"/></svg></div>
+          <div class="flow-step">
+            <div class="flow-icon"><svg viewBox="0 0 1024 1024"><path d="M512 96l272 336H608v304H416V432H240L512 96zM256 832h512v96H256v-96z"/></svg></div>
+            <h4>自动发货</h4>
+            <p>下单后系统秒级直充发货</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- API密钥 -->
+    <section class="panel" id="panel-apikey">
+      <div class="card">
+        <div class="card-title">
+          API 密钥
+          <button class="op-btn op-btn-blue" id="btn-create-key">+ 创建密钥</button>
+        </div>
+        <div class="endpoint-row">
+          <span class="ep-lbl">API 端点</span>
+          <code>https://your-domain.com/open-api/v1</code>
+          <button class="mini-btn" data-copy-ep style="flex:none;">复制</button>
+        </div>
+        <div id="key-state"></div>
+        <table class="op-table" id="key-table" style="display:none;">
+          <thead><tr><th>AppKey</th><th>AppSecret</th><th>备注</th><th>加价倍数</th><th>状态</th><th>创建时间</th><th>最近使用</th><th>操作</th></tr></thead>
+          <tbody id="key-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 余额充值 -->
+    <section class="panel" id="panel-recharge">
+      <div class="card">
+        <div class="card-title">余额充值</div>
+        <div class="pay-note" style="margin-bottom:18px;">充值余额用于调用下单接口按成本价扣款；支付成功后余额实时到账。</div>
+        <div class="cform-item">
+          <label>充值金额（元）</label>
+          <div class="amount-row">
+            <button type="button" class="amount-opt sel" data-amt="100">¥100</button>
+            <button type="button" class="amount-opt" data-amt="500">¥500</button>
+            <button type="button" class="amount-opt" data-amt="1000">¥1000</button>
+            <div class="amount-custom">
+              <input type="number" id="rc-amount" min="1" step="0.01" placeholder="自定义金额" />
+            </div>
+          </div>
+        </div>
+        <div class="cform-item">
+          <label>支付方式</label>
+          <div class="pay-type-row">
+            <button type="button" class="pay-type-btn sel-wechat" id="rc-pay-wechat" data-type="wechat"><span class="dot" style="background:#07c160;"></span>微信支付</button>
+            <button type="button" class="pay-type-btn" id="rc-pay-alipay" data-type="alipay"><span class="dot" style="background:#1677ff;"></span>支付宝</button>
+          </div>
+        </div>
+        <button class="op-btn op-btn-blue" id="btn-create-recharge">生成支付二维码</button>
+
+        <!-- 二维码区 -->
+        <div class="qr-area" id="qr-area">
+          <div class="qr-box" id="qr-box"></div>
+          <div class="qr-tip" id="qr-tip">微信扫码支付</div>
+          <div id="qr-alipay-link" style="margin-top:8px;display:none;"><a href="#" id="qr-alipay-a" target="_blank" style="color:#1677ff;font-size:13px;text-decoration:underline;">支付宝点击此处跳转支付</a></div>
+          <div class="qr-order" id="qr-order"></div>
+          <div class="qr-status" id="qr-status"><span class="polling"></span>等待支付，每 3 秒自动查询...</div>
+          <div class="qr-success" id="qr-success"><span class="check">✓</span>充值到账，余额已更新</div>
+          <div class="qr-closed" id="qr-closed">订单已关闭，请重新发起充值</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">充值记录</div>
+        <div id="rc-list-state"></div>
+        <table class="op-table" id="rc-table" style="display:none;">
+          <thead><tr><th>单号</th><th>金额（元）</th><th>支付方式</th><th>状态</th><th>创建时间</th><th>支付时间</th></tr></thead>
+          <tbody id="rc-tbody"></tbody>
+        </table>
+        <div class="pager2" id="rc-pager"></div>
+      </div>
+    </section>
+
+    <!-- 管理员：充值管理 -->
+    <section class="panel" id="panel-admin-recharges">
+      <div class="card">
+        <div class="card-title">全部充值记录（管理员）</div>
+        <div class="admin-filter">
+          <span style="font-size:13px;color:#86909c;">状态筛选</span>
+          <select id="ar-status">
+            <option value="">全部</option>
+            <option value="0">待支付</option>
+            <option value="1">已支付</option>
+            <option value="2">已关闭</option>
+          </select>
+        </div>
+        <div id="ar-state"></div>
+        <table class="op-table" id="ar-table" style="display:none;">
+          <thead><tr><th>单号</th><th>用户ID</th><th>金额（元）</th><th>支付方式</th><th>状态</th><th>创建时间</th><th>支付时间</th></tr></thead>
+          <tbody id="ar-tbody"></tbody>
+        </table>
+        <div class="pager2" id="ar-pager"></div>
+      </div>
+    </section>
+
+    <!-- 管理员：用户与余额 -->
+    <section class="panel" id="panel-admin-users">
+      <div class="card">
+        <div class="card-title">用户与余额（管理员）</div>
+        <div id="au-state"></div>
+        <table class="op-table" id="au-table" style="display:none;">
+          <thead><tr><th>ID</th><th>昵称</th><th>手机号</th><th>余额（元）</th><th>注册时间</th><th>操作</th></tr></thead>
+          <tbody id="au-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 使用记录 -->
+    <section class="panel" id="panel-logs">
+      <div class="card">
+        <div class="card-title">接口使用记录</div>
+        <div id="log-state"></div>
+        <table class="op-table" id="log-table" style="display:none;">
+          <thead><tr><th>ID</th><th>接口</th><th>IP</th><th>状态</th><th>时间</th></tr></thead>
+          <tbody id="log-tbody"></tbody>
+        </table>
+        <div class="pager2" id="log-pager"></div>
+      </div>
+    </section>
+
+    <!-- 个人资料 -->
+    <section class="panel" id="panel-profile">
+      <div class="card">
+        <div class="card-title">个人资料</div>
+        <div id="profile-state"><div class="op-loading"><span class="op-spinner"></span>资料加载中...</div></div>
+        <div id="profile-body" style="display:none;">
+          <div class="profile-row">
+            <div class="k">头像</div>
+            <div class="v"><div class="profile-avatar-lg" id="pf-avatar">·</div></div>
+          </div>
+          <div class="profile-row"><div class="k">昵称</div><div class="v" id="pf-name">--</div></div>
+          <div class="profile-row"><div class="k">手机号</div><div class="v" id="pf-mobile">--</div></div>
+          <div class="profile-row"><div class="k">注册时间</div><div class="v" id="pf-time">--</div></div>
+          <div class="profile-row"><div class="k">账户余额</div><div class="v"><span id="pf-balance" style="color:#f53f3f;font-weight:700;">--</span><div id="pf-balance-tip" style="display:none;font-size:12px;color:#f53f3f;line-height:18px;margin-top:4px;">余额不足时将无法调用下单接口，请联系平台充值</div></div></div>
+          <div style="margin-top:22px;">
+            <div class="cform-item">
+              <label>修改昵称</label>
+              <input type="text" id="pf-new-name" maxlength="20" placeholder="输入新昵称" />
+            </div>
+            <button class="op-btn op-btn-blue" id="btn-save-profile">保存修改</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 注册邀请 -->
+    <section class="panel" id="panel-invite">
+      <div class="card">
+        <div class="card-title">注册邀请</div>
+        <div id="invite-state"><div class="op-loading"><span class="op-spinner"></span>邀请信息加载中...</div></div>
+        <div id="invite-body" style="display:none;">
+          <p style="font-size:13px;color:#86909c;line-height:24px;margin-bottom:16px;">
+            分享邀请链接给好友，对方注册开放平台账号后计入你的邀请人数。
+          </p>
+          <div class="profile-row"><div class="k">我的邀请码</div>
+            <div class="v"><b id="inv-code" style="color:#165dff;font-size:16px;">--</b>
+              <button class="mini-btn" id="btn-copy-code" style="margin-left:12px;">复制</button></div>
+          </div>
+          <div class="profile-row" style="border-bottom:none;align-items:flex-start;">
+            <div class="k">邀请链接</div>
+            <div class="v invite-link-row">
+              <input type="text" id="inv-url" readonly />
+              <button class="op-btn op-btn-blue" id="btn-copy-url">一键复制</button>
+            </div>
+          </div>
+          <div class="profile-row"><div class="k">已邀请人数</div><div class="v" id="inv-count">--</div></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- 创建密钥弹窗 -->
+<div class="modal-mask" id="modal-create">
+  <div class="modal-box">
+    <div class="modal-title">创建 API 密钥</div>
+    <div class="cform-item">
+      <label>备注（可选）</label>
+      <input type="text" id="key-remark" maxlength="30" placeholder="如：积分商城生产环境" style="width:100%;" />
+    </div>
+    <div class="cform-item">
+      <label>加价倍数</label>
+      <input type="number" id="key-rate" min="1" max="99.99" step="0.01" value="1.00" style="width:100%;" />
+      <div style="font-size:12px;color:#86909c;line-height:20px;margin-top:6px;">调用接口时成本价将按此倍数返回，用于对外报价，默认 1 为原价</div>
+    </div>
+    <div class="modal-actions">
+      <button class="op-btn op-btn-ghost" id="btn-create-cancel">取消</button>
+      <button class="op-btn op-btn-blue" id="btn-create-ok">创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- 密钥展示弹窗（仅一次） -->
+<div class="modal-mask" id="modal-secret">
+  <div class="modal-box">
+    <div class="modal-title">密钥创建成功</div>
+    <div class="doc-warn" style="background:#fff7f0;border-left:3px solid #ff7d00;border-radius:0 8px 8px 0;padding:12px 16px;font-size:13px;line-height:24px;margin:0 0 6px;">
+      密钥已创建成功。AppKey / AppSecret 后续可随时在密钥列表中复制，请妥善保管。
+    </div>
+    <div class="secret-show">
+      <div class="row"><span style="color:#86909c;">AppKey</span><code id="ms-appkey">--</code></div>
+      <div class="row"><span style="color:#86909c;">AppSecret</span><code id="ms-secret">--</code></div>
+    </div>
+    <div class="modal-actions">
+      <button class="op-btn op-btn-ghost" id="btn-copy-secret">复制 AppSecret</button>
+      <button class="op-btn op-btn-blue" id="btn-secret-close">我已保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 调余额弹窗（管理员） -->
+<div class="modal-mask" id="modal-adjust">
+  <div class="modal-box">
+    <div class="modal-title">调整用户余额</div>
+    <div style="font-size:13px;color:#86909c;margin-bottom:14px;">用户：<b id="adj-user-label" style="color:#1d1d1f;">--</b></div>
+    <div class="cform-item">
+      <label>金额（元，正数加余额 / 负数减余额）</label>
+      <input type="number" id="adj-amount" step="0.01" placeholder="如 500 或 -100" style="width:100%;" />
+    </div>
+    <div class="cform-item">
+      <label>备注</label>
+      <input type="text" id="adj-remark" maxlength="50" placeholder="调整原因" style="width:100%;" />
+    </div>
+    <div class="modal-actions">
+      <button class="op-btn op-btn-ghost" id="btn-adj-cancel">取消</button>
+      <button class="op-btn op-btn-blue" id="btn-adj-ok">确认调整</button>
+    </div>
+  </div>
+</div>
+
+<script src="open-qrcode.min.js"></script>
+<script src="open-common.js"></script>
+<script>
+  /* ===== 登录守卫 ===== */
+  if (!OP.getToken()) {
+    OP.toast('请先登录开放平台账号');
+    setTimeout(function () { location.href = 'login.html'; }, 600);
+  }
+
+  /* ===== 顶栏信息 ===== */
+  function renderAvatar(el, user) {
+    if (user && user.avatar) {
+      el.innerHTML = '<img src="' + OP.escapeHtml(user.avatar) + '" alt="" onerror="this.onerror=null;this.src=\'../assets/logo-icon.png\'" />';
+    } else {
+      el.innerHTML = '<img src="../assets/logo-icon.png" alt="" />';
+    }
+  }
+
+  var profileCache = null;
+  function loadProfile() {
+    return OP.openApi('/profile').then(function (d) {
+      profileCache = d;
+      document.getElementById('top-balance').textContent = OP.fmtYuan(d.balance);
+      document.getElementById('top-name').textContent = d.name || OP.maskMobile(d.mobile);
+      renderAvatar(document.getElementById('top-avatar'), d);
+      return d;
+    }).catch(function (err) {
+      document.getElementById('top-balance').textContent = '--';
+      document.getElementById('top-name').textContent = '开放平台用户';
+      OP.toast(err.message || '用户信息加载失败');
+    });
+  }
+  loadProfile();
+
+  document.getElementById('btn-logout').addEventListener('click', function () {
+    OP.clearToken();
+    OP.toast('已退出登录');
+    setTimeout(function () { location.href = 'login.html'; }, 500);
+  });
+
+  /* ===== 侧边栏切换 ===== */
+  var loadedPanels = {};
+  document.querySelectorAll('.console-side .side-item[data-panel]').forEach(function (item) {
+    item.addEventListener('click', function () {
+      document.querySelectorAll('.console-side .side-item').forEach(function (el) { el.classList.remove('active'); });
+      item.classList.add('active');
+      var p = item.getAttribute('data-panel');
+      document.querySelectorAll('.console-main .panel').forEach(function (el) { el.classList.remove('active'); });
+      document.getElementById('panel-' + p).classList.add('active');
+      if (!loadedPanels[p]) {
+        loadedPanels[p] = true;
+        if (p === 'dashboard') loadDashboard();
+        if (p === 'apikey') loadKeys();
+        if (p === 'recharge') loadRechargeList(1);
+        if (p === 'admin-recharges') loadAdminRecharges(1);
+        if (p === 'admin-users') loadAdminUsers();
+        if (p === 'logs') loadLogs(1);
+        if (p === 'profile') loadProfilePanel();
+        if (p === 'invite') loadInvite();
+      }
+    });
+  });
+
+  function panelError(boxId, err, retryFnName) {
+    document.getElementById(boxId).innerHTML =
+      '<div class="op-error-box">' + OP.escapeHtml(err && err.message || '数据加载失败') +
+      '<br /><a href="javascript:void(0);" onclick="' + retryFnName + '" style="color:#165dff;text-decoration:underline;">点击重试</a></div>';
+  }
+
+  /* ===== 仪表盘 ===== */
+  function loadDashboard() {
+    document.getElementById('dash-state').innerHTML = '<div class="op-loading"><span class="op-spinner"></span>数据加载中...</div>';
+    document.getElementById('dash-grid').style.display = 'none';
+    OP.openApi('/dashboard').then(function (d) {
+      document.getElementById('dash-state').innerHTML = '';
+      document.getElementById('dash-grid').style.display = 'grid';
+      document.getElementById('d-balance').textContent = OP.fmtYuan(d.balance);
+      document.getElementById('d-today').textContent = d.today_calls != null ? d.today_calls : 0;
+      document.getElementById('d-total').textContent = d.total_calls != null ? d.total_calls : 0;
+      document.getElementById('d-keys').textContent = d.key_count != null ? d.key_count : 0;
+      document.getElementById('d-invites').textContent = d.invite_count != null ? d.invite_count : 0;
+    }).catch(function (err) {
+      panelError('dash-state', err, 'loadDashboard()');
+    });
+  }
+  loadDashboard();
+  loadedPanels.dashboard = true;
+
+  /* ===== API 密钥 ===== */
+  function loadKeys() {
+    document.getElementById('key-state').innerHTML = '<div class="op-loading"><span class="op-spinner"></span>密钥列表加载中...</div>';
+    document.getElementById('key-table').style.display = 'none';
+    OP.openApi('/apikey').then(function (d) {
+      var list = (d && d.list) || [];
+      if (!list.length) {
+        document.getElementById('key-state').innerHTML = '<div class="op-empty">暂无密钥，点击右上角「创建密钥」开始接入</div>';
+        return;
+      }
+      document.getElementById('key-state').innerHTML = '';
+      document.getElementById('key-table').style.display = 'table';
+      document.getElementById('key-tbody').innerHTML = list.map(function (k) {
+        var on = Number(k.status) === 1;
+        var rate = parseFloat(k.price_rate);
+        var rateHtml = (isNaN(rate) || rate === 1)
+          ? '<span style="color:#86909c;">原价</span>'
+          : '<b style="color:#165dff;">' + rate.toFixed(2) + '</b>';
+        var keyVal = k.app_key || '';
+        var secretVal = k.app_secret || '';
+        // 显示掩码（前4后4），复制取完整值；旧数据无明文时回退后端掩码字段
+        var secretShow = secretVal
+          ? (secretVal.length > 8 ? secretVal.slice(0, 4) + '****' + secretVal.slice(-4) : secretVal.slice(0, 2) + '****')
+          : (k.app_secret_masked || 'sk_****');
+        return '<tr>' +
+          '<td><code style="font-family:Menlo,monospace;color:#165dff;">' + OP.escapeHtml(keyVal) + '</code>' +
+          (keyVal ? '<button class="mini-btn copy-mini" data-copy="' + OP.escapeHtml(keyVal) + '" title="复制 AppKey">复制</button>' : '') + '</td>' +
+          '<td><code style="font-family:Menlo,monospace;">' + OP.escapeHtml(secretShow) + '</code>' +
+          (secretVal ? '<button class="mini-btn copy-mini" data-copy="' + OP.escapeHtml(secretVal) + '" title="复制 AppSecret">复制</button>' : '') + '</td>' +
+          '<td>' + OP.escapeHtml(k.remark || '-') + '</td>' +
+          '<td>' + rateHtml + '</td>' +
+          '<td><span class="tag-status ' + (on ? 'tag-on' : 'tag-off') + '">' + (on ? '启用中' : '已禁用') + '</span></td>' +
+          '<td>' + OP.escapeHtml(OP.fmtTime(k.created_time) || '-') + '</td>' +
+          '<td>' + OP.escapeHtml(OP.fmtTime(k.last_used_time) || '从未使用') + '</td>' +
+          '<td><button class="mini-btn ' + (on ? 'danger' : '') + '" data-id="' + k.id + '" data-status="' + (on ? 0 : 1) + '">' + (on ? '禁用' : '启用') + '</button></td>' +
+          '</tr>';
+      }).join('');
+    }).catch(function (err) {
+      panelError('key-state', err, 'loadKeys()');
+    });
+  }
+
+  document.getElementById('key-tbody').addEventListener('click', function (e) {
+    var copyBtn = e.target.closest('button[data-copy]');
+    if (copyBtn) {
+      OP.copyText(copyBtn.getAttribute('data-copy'), '已复制');
+      return;
+    }
+    var btn = e.target.closest('button[data-id]');
+    if (!btn || btn.disabled) return;
+    var id = btn.getAttribute('data-id');
+    var st = btn.getAttribute('data-status');
+    if (st === '0' && !confirm('确定禁用该密钥？禁用后使用该密钥的接口调用将失败。')) return;
+    btn.disabled = true;
+    OP.openApi('/apikey/status', { method: 'POST', data: { id: Number(id), status: Number(st) } })
+      .then(function () {
+        OP.toast(st === '1' ? '已启用' : '已禁用');
+        loadKeys();
+      })
+      .catch(function (err) {
+        OP.toast(err.message || '操作失败');
+        btn.disabled = false;
+      });
+  });
+
+  document.getElementById('btn-create-key').addEventListener('click', function () {
+    document.getElementById('key-remark').value = '';
+    document.getElementById('key-rate').value = '1.00';
+    document.getElementById('modal-create').classList.add('show');
+  });
+  document.getElementById('btn-create-cancel').addEventListener('click', function () {
+    document.getElementById('modal-create').classList.remove('show');
+  });
+  document.getElementById('btn-create-ok').addEventListener('click', function () {
+    var btn = this;
+    var remark = document.getElementById('key-remark').value.trim();
+    var rate = parseFloat(document.getElementById('key-rate').value);
+    if (isNaN(rate) || rate < 1 || rate > 99.99) {
+      OP.toast('加价倍数需在 1.00 ~ 99.99 之间');
+      return;
+    }
+    rate = Math.round(rate * 100) / 100;
+    btn.disabled = true;
+    btn.textContent = '创建中...';
+    OP.openApi('/apikey', { method: 'POST', data: { remark: remark || undefined, price_rate: rate } })
+      .then(function (d) {
+        document.getElementById('modal-create').classList.remove('show');
+        document.getElementById('ms-appkey').textContent = d.app_key || '--';
+        document.getElementById('ms-secret').textContent = d.app_secret || '--';
+        document.getElementById('modal-secret').classList.add('show');
+        loadKeys();
+      })
+      .catch(function (err) {
+        OP.toast(err.message || '创建失败');
+      })
+      .then(function () {
+        btn.disabled = false;
+        btn.textContent = '创建';
+      });
+  });
+  document.getElementById('btn-copy-secret').addEventListener('click', function () {
+    OP.copyText(document.getElementById('ms-secret').textContent, 'AppSecret 已复制，请立即保存');
+  });
+  document.getElementById('btn-secret-close').addEventListener('click', function () {
+    document.getElementById('modal-secret').classList.remove('show');
+  });
+
+  /* ===== 管理员入口（role=1 可见） ===== */
+  OP.openApi('/profile').then(function (d) {
+    if (d && Number(d.role) === 1) {
+      // display:contents 让子项直接并入侧栏流（桌面纵向、移动端横向 tab 条均正常）
+      document.getElementById('admin-side-group').style.display = 'contents';
+      document.getElementById('notice-admin-form').style.display = 'block';
+    }
+  }).catch(function () { /* 普通用户或接口异常，保持隐藏 */ });
+
+  /* ===== 余额充值 ===== */
+  var rcState = { amount: 100, payType: 'wechat', orderNo: null, timer: null };
+
+  function deployMsg(err, name) {
+    var msg = (err && err.message) || '';
+    if (/响应异常|无法连接/.test(msg)) return name + '接口正在部署中，暂不可用，请稍后再试';
+    return msg || (name + '数据加载失败');
+  }
+
+  document.querySelectorAll('.amount-opt').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.amount-opt').forEach(function (b) { b.classList.remove('sel'); });
+      btn.classList.add('sel');
+      document.getElementById('rc-amount').value = '';
+      rcState.amount = Number(btn.getAttribute('data-amt'));
+    });
+  });
+  document.getElementById('rc-amount').addEventListener('input', function () {
+    var v = parseFloat(this.value);
+    if (!isNaN(v) && v > 0) {
+      document.querySelectorAll('.amount-opt').forEach(function (b) { b.classList.remove('sel'); });
+      rcState.amount = v;
+    }
+  });
+  document.getElementById('rc-pay-wechat').addEventListener('click', function () { selectPayType('wechat'); });
+  document.getElementById('rc-pay-alipay').addEventListener('click', function () { selectPayType('alipay'); });
+  function selectPayType(t) {
+    rcState.payType = t;
+    document.getElementById('rc-pay-wechat').className = 'pay-type-btn' + (t === 'wechat' ? ' sel-wechat' : '');
+    document.getElementById('rc-pay-alipay').className = 'pay-type-btn' + (t === 'alipay' ? ' sel-alipay' : '');
+  }
+
+  function stopRcPolling() {
+    if (rcState.timer) { clearInterval(rcState.timer); rcState.timer = null; }
+  }
+
+  document.getElementById('btn-goto-recharge').addEventListener('click', function () {
+    var item = document.querySelector('.console-side .side-item[data-panel="recharge"]');
+    if (item) item.click();
+  });
+
+  document.getElementById('btn-create-recharge').addEventListener('click', function () {
+    var custom = parseFloat(document.getElementById('rc-amount').value);
+    var amount = !isNaN(custom) && custom > 0 ? custom : rcState.amount;
+    if (!amount || amount < 1) { OP.toast('充值金额最低 1 元'); return; }
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = '创建中...';
+    stopRcPolling();
+    OP.openApi('/recharge', { method: 'POST', data: { amount: amount, pay_type: rcState.payType } })
+      .then(function (d) {
+        if (!d || !d.order_no || !d.pay_qrcode) { OP.toast('下单响应异常，请重试'); return; }
+        rcState.orderNo = d.order_no;
+        renderQr(d);
+        startRcPolling();
+        loadRechargeList(1);
+      })
+      .catch(function (err) { OP.toast(deployMsg(err, '充值')); })
+      .then(function () { btn.disabled = false; btn.textContent = '生成支付二维码'; });
+  });
+
+  function renderQr(d) {
+    var box = document.getElementById('qr-box');
+    try {
+      var qr = qrcode(0, 'M');
+      qr.addData(d.pay_qrcode);
+      qr.make();
+      box.innerHTML = qr.createImgTag(4, 10);
+    } catch (e) {
+      box.innerHTML = '<div style="padding:20px;font-size:12px;color:#f53f3f;word-break:break-all;">二维码生成失败，请复制支付串：<br />' + OP.escapeHtml(d.pay_qrcode) + '</div>';
+    }
+    var isWechat = rcState.payType === 'wechat';
+    var tip = document.getElementById('qr-tip');
+    tip.textContent = isWechat ? '微信扫码支付' : '支付宝扫码支付';
+    tip.className = 'qr-tip ' + (isWechat ? 'wechat' : 'alipay');
+    var linkBox = document.getElementById('qr-alipay-link');
+    var payLink = !isWechat ? (d.pay_url || (/^https?:\/\//.test(d.pay_qrcode) ? d.pay_qrcode : '')) : '';
+    if (payLink) {
+      document.getElementById('qr-alipay-a').href = payLink;
+      linkBox.style.display = 'block';
+    } else {
+      linkBox.style.display = 'none';
+    }
+    document.getElementById('qr-order').textContent = '订单号：' + d.order_no;
+    document.getElementById('qr-status').style.display = 'flex';
+    document.getElementById('qr-success').classList.remove('show');
+    document.getElementById('qr-closed').classList.remove('show');
+    document.getElementById('qr-area').classList.add('show');
+  }
+
+  function startRcPolling() {
+    stopRcPolling();
+    rcState.timer = setInterval(function () {
+      if (!rcState.orderNo) { stopRcPolling(); return; }
+      OP.openApi('/recharge/status', { query: { order_no: rcState.orderNo } })
+        .then(function (d) {
+          var st = d && d.status != null ? Number(d.status) : 0;
+          if (st === 1) {
+            stopRcPolling();
+            document.getElementById('qr-status').style.display = 'none';
+            document.getElementById('qr-success').classList.add('show');
+            OP.toast('充值到账');
+            loadProfile();
+            loadDashboard();
+            loadRechargeList(1);
+          } else if (st === 2) {
+            stopRcPolling();
+            document.getElementById('qr-status').style.display = 'none';
+            document.getElementById('qr-closed').classList.add('show');
+            loadRechargeList(1);
+          }
+        })
+        .catch(function () { /* 轮询失败静默，下轮重试 */ });
+    }, 3000);
+  }
+
+  /* 充值记录 */
+  function rcStatusTag(st) {
+    st = Number(st);
+    if (st === 1) return '<span class="tag-status tag-on">已支付</span>';
+    if (st === 2) return '<span class="tag-status tag-off">已关闭</span>';
+    return '<span class="tag-status" style="color:#ff7d00;background:#fff7e8;">待支付</span>';
+  }
+  function payTypeName(t) { return t === 'wechat' ? '微信' : (t === 'alipay' ? '支付宝' : (t || '-')); }
+
+  function renderMiniPager(elId, p, cur) {
+    var el = document.getElementById(elId);
+    if (!p || !p.pages || p.pages <= 1) { el.innerHTML = ''; return; }
+    var btns = [];
+    btns.push('<button data-p="' + (cur - 1) + '"' + (cur <= 1 ? ' disabled' : '') + '>上一页</button>');
+    for (var i = 1; i <= p.pages; i++) {
+      if (i === 1 || i === p.pages || Math.abs(i - cur) <= 2) {
+        btns.push('<button data-p="' + i + '"' + (i === cur ? ' class="cur"' : '') + '>' + i + '</button>');
+      }
+    }
+    btns.push('<button data-p="' + (cur + 1) + '"' + (cur >= p.pages ? ' disabled' : '') + '>下一页</button>');
+    el.innerHTML = btns.join('');
+  }
+
+  var rcCurrent = 1;
+  function loadRechargeList(page) {
+    rcCurrent = page || 1;
+    document.getElementById('rc-list-state').innerHTML = '<div class="op-loading"><span class="op-spinner"></span>充值记录加载中...</div>';
+    document.getElementById('rc-table').style.display = 'none';
+    document.getElementById('rc-pager').innerHTML = '';
+    OP.openApi('/recharge/list', { query: { current: rcCurrent, size: 10 } }).then(function (d) {
+      var list = (d && d.list) || [];
+      if (!list.length) {
+        document.getElementById('rc-list-state').innerHTML = '<div class="op-empty">暂无充值记录</div>';
+        return;
+      }
+      document.getElementById('rc-list-state').innerHTML = '';
+      document.getElementById('rc-table').style.display = 'table';
+      document.getElementById('rc-tbody').innerHTML = list.map(function (r) {
+        return '<tr>' +
+          '<td><code style="font-family:Menlo,monospace;font-size:12px;">' + OP.escapeHtml(r.order_no || '-') + '</code></td>' +
+          '<td style="color:#f53f3f;font-weight:700;">' + OP.fen2yuan(r.amount) + '</td>' +
+          '<td>' + payTypeName(r.pay_type) + '</td>' +
+          '<td>' + rcStatusTag(r.status) + '</td>' +
+          '<td>' + OP.escapeHtml(OP.fmtTime(r.created_time) || '-') + '</td>' +
+          '<td>' + OP.escapeHtml(OP.fmtTime(r.paid_time) || '-') + '</td>' +
+          '</tr>';
+      }).join('');
+      renderMiniPager('rc-pager', d.pagination, rcCurrent);
+    }).catch(function (err) {
+      panelError('rc-list-state', { message: deployMsg(err, '充值') }, 'loadRechargeList(1)');
+    });
+  }
+  document.getElementById('rc-pager').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-p]');
+    if (btn && !btn.disabled) loadRechargeList(Number(btn.getAttribute('data-p')));
+  });
+
+  /* ===== 管理员：充值管理 ===== */
+  var arCurrent = 1;
+  function loadAdminRecharges(page) {
+    arCurrent = page || 1;
+    document.getElementById('ar-state').innerHTML = '<div class="op-loading"><span class="op-spinner"></span>记录加载中...</div>';
+    document.getElementById('ar-table').style.display = 'none';
+    document.getElementById('ar-pager').innerHTML = '';
+    var q = { current: arCurrent, size: 20 };
+    var st = document.getElementById('ar-status').value;
+    if (st !== '') q.status = st;
+    OP.openApi('/admin/recharges', { query: q }).then(function (d) {
+      var list = (d && d.list) || [];
+      if (!list.length) {
+        document.getElementById('ar-state').innerHTML = '<div class="op-empty">暂无充值记录</div>';
+        return;
+      }
+      document.getElementById('ar-state').innerHTML = '';
+      document.getElementById('ar-table').style.display = 'table';
+      document.getElementById('ar-tbody').innerHTML = list.map(function (r) {
+        return '<tr>' +
+          '<td><code style="font-family:Menlo,monospace;font-size:12px;">' + OP.escapeHtml(r.order_no || '-') + '</code></td>' +
+          '<td>' + OP.escapeHtml(r.user_id != null ? r.user_id : '-') + '</td>' +
+          '<td style="color:#f53f3f;font-weight:700;">' + OP.fen2yuan(r.amount) + '</td>' +
+          '<td>' + payTypeName(r.pay_type) + '</td>' +
+          '<td>' + rcStatusTag(r.status) + '</td>' +
+          '<td>' + OP.escapeHtml(OP.fmtTime(r.created_time) || '-') + '</td>' +
+          '<td>' + OP.escapeHtml(OP.fmtTime(r.paid_time) || '-') + '</td>' +
+          '</tr>';
+      }).join('');
+      renderMiniPager('ar-pager', d.pagination, arCurrent);
+    }).catch(function (err) {
+      panelError('ar-state', { message: deployMsg(err, '充值管理') }, 'loadAdminRecharges(1)');
+    });
+  }
+  document.getElementById('ar-status').addEventListener('change', function () { loadAdminRecharges(1); });
+  document.getElementById('ar-pager').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-p]');
+    if (btn && !btn.disabled) loadAdminRecharges(Number(btn.getAttribute('data-p')));
+  });
+
+  /* ===== 管理员：用户与余额 ===== */
+  var adminUserCache = {};
+  function loadAdminUsers() {
+    document.getElementById('au-state').innerHTML = '<div class="op-loading"><span class="op-spinner"></span>用户列表加载中...</div>';
+    document.getElementById('au-table').style.display = 'none';
+    OP.openApi('/admin/users').then(function (d) {
+      var list = (d && d.list) || (Array.isArray(d) ? d : []);
+      if (!list.length) {
+        document.getElementById('au-state').innerHTML = '<div class="op-empty">暂无用户</div>';
+        return;
+      }
+      document.getElementById('au-state').innerHTML = '';
+      document.getElementById('au-table').style.display = 'table';
+      adminUserCache = {};
+      document.getElementById('au-tbody').innerHTML = list.map(function (u) {
+        adminUserCache[u.id] = u;
+        return '<tr>' +
+          '<td>' + OP.escapeHtml(u.id) + '</td>' +
+          '<td>' + OP.escapeHtml(u.name || '未设置') + '</td>' +
+          '<td>' + OP.escapeHtml(u.mobile || '-') + '</td>' +
+          '<td style="color:#f53f3f;font-weight:700;">' + OP.fmtYuan(u.balance) + '</td>' +
+          '<td>' + OP.escapeHtml(OP.fmtTime(u.created_time) || '-') + '</td>' +
+          '<td><button class="mini-btn" data-adjust="' + u.id + '">调余额</button></td>' +
+          '</tr>';
+      }).join('');
+    }).catch(function (err) {
+      panelError('au-state', { message: deployMsg(err, '用户管理') }, 'loadAdminUsers()');
+    });
+  }
+
+  var adjustUserId = null;
+  document.getElementById('au-tbody').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-adjust]');
+    if (!btn) return;
+    var u = adminUserCache[btn.getAttribute('data-adjust')];
+    if (!u) return;
+    adjustUserId = u.id;
+    document.getElementById('adj-user-label').textContent = (u.name || '未设置') + '（ID:' + u.id + '，当前余额 ' + OP.fmtYuan(u.balance) + ' 元）';
+    document.getElementById('adj-amount').value = '';
+    document.getElementById('adj-remark').value = '';
+    document.getElementById('modal-adjust').classList.add('show');
+  });
+  document.getElementById('btn-adj-cancel').addEventListener('click', function () {
+    document.getElementById('modal-adjust').classList.remove('show');
+  });
+  document.getElementById('btn-adj-ok').addEventListener('click', function () {
+    var amount = parseFloat(document.getElementById('adj-amount').value);
+    if (isNaN(amount) || amount === 0) { OP.toast('请输入非零金额（正加负减）'); return; }
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = '提交中...';
+    OP.openApi('/admin/balance', {
+      method: 'POST',
+      data: { user_id: Number(adjustUserId), amount: amount, remark: document.getElementById('adj-remark').value.trim() || undefined }
+    }).then(function () {
+      OP.toast('余额调整成功');
+      document.getElementById('modal-adjust').classList.remove('show');
+      loadAdminUsers();
+    }).catch(function (err) {
+      OP.toast(deployMsg(err, '余额调整'));
+    }).then(function () {
+      btn.disabled = false;
+      btn.textContent = '确认调整';
+    });
+  });
+
+  /* ===== 使用记录 ===== */
+  var logCurrent = 1;
+  function loadLogs(page) {
+    logCurrent = page || 1;
+    document.getElementById('log-state').innerHTML = '<div class="op-loading"><span class="op-spinner"></span>记录加载中...</div>';
+    document.getElementById('log-table').style.display = 'none';
+    document.getElementById('log-pager').innerHTML = '';
+    OP.openApi('/logs', { query: { current: logCurrent, size: 20 } }).then(function (d) {
+      var list = (d && d.list) || [];
+      if (!list.length) {
+        document.getElementById('log-state').innerHTML = '<div class="op-empty">暂无调用记录</div>';
+        return;
+      }
+      document.getElementById('log-state').innerHTML = '';
+      document.getElementById('log-table').style.display = 'table';
+      document.getElementById('log-tbody').innerHTML = list.map(function (l) {
+        var ok = String(l.status) === '0' || String(l.status) === '200' || String(l.status).toLowerCase() === 'success' || Number(l.status) === 1;
+        return '<tr>' +
+          '<td>' + OP.escapeHtml(l.id) + '</td>' +
+          '<td><code style="font-family:Menlo,monospace;">' + OP.escapeHtml(l.api || '-') + '</code></td>' +
+          '<td>' + OP.escapeHtml(l.ip || '-') + '</td>' +
+          '<td><span class="tag-status ' + (ok ? 'tag-on' : 'tag-off') + '">' + OP.escapeHtml(l.status) + '</span></td>' +
+          '<td>' + OP.escapeHtml(OP.fmtTime(l.created_time) || '-') + '</td>' +
+          '</tr>';
+      }).join('');
+      // 分页
+      var p = d.pagination || {};
+      if (p.pages > 1) {
+        var btns = [];
+        btns.push('<button data-p="' + (logCurrent - 1) + '"' + (logCurrent <= 1 ? ' disabled' : '') + '>上一页</button>');
+        for (var i = 1; i <= p.pages; i++) {
+          if (i === 1 || i === p.pages || Math.abs(i - logCurrent) <= 2) {
+            btns.push('<button data-p="' + i + '"' + (i === logCurrent ? ' class="cur"' : '') + '>' + i + '</button>');
+          }
+        }
+        btns.push('<button data-p="' + (logCurrent + 1) + '"' + (logCurrent >= p.pages ? ' disabled' : '') + '>下一页</button>');
+        document.getElementById('log-pager').innerHTML = btns.join('');
+      }
+    }).catch(function (err) {
+      panelError('log-state', err, 'loadLogs(1)');
+    });
+  }
+  document.getElementById('log-pager').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-p]');
+    if (!btn || btn.disabled) return;
+    loadLogs(Number(btn.getAttribute('data-p')));
+  });
+
+  /* ===== 个人资料 ===== */
+  function loadProfilePanel() {
+    document.getElementById('profile-state').innerHTML = '<div class="op-loading"><span class="op-spinner"></span>资料加载中...</div>';
+    document.getElementById('profile-body').style.display = 'none';
+    OP.openApi('/profile').then(function (d) {
+      document.getElementById('profile-state').innerHTML = '';
+      document.getElementById('profile-body').style.display = 'block';
+      document.getElementById('pf-name').textContent = d.name || '未设置';
+      document.getElementById('pf-mobile').textContent = OP.maskMobile(d.mobile);
+      document.getElementById('pf-time').textContent = OP.fmtTime(d.created_time) || '-';
+      document.getElementById('pf-balance').textContent = OP.fmtYuan(d.balance) + ' 元';
+      document.getElementById('pf-balance-tip').style.display = Number(d.balance) > 0 ? 'none' : 'block';
+      renderAvatar(document.getElementById('pf-avatar'), d);
+    }).catch(function (err) {
+      panelError('profile-state', err, 'loadProfilePanel()');
+    });
+  }
+
+  document.getElementById('btn-save-profile').addEventListener('click', function () {
+    var name = document.getElementById('pf-new-name').value.trim();
+    if (!name) { OP.toast('请输入新昵称'); return; }
+    var btn = this;
+    btn.disabled = true;
+    OP.openApi('/profile', { method: 'POST', data: { name: name } })
+      .then(function () {
+        OP.toast('资料已更新');
+        document.getElementById('pf-new-name').value = '';
+        loadProfile();
+        loadProfilePanel();
+      })
+      .catch(function (err) { OP.toast(err.message || '保存失败'); })
+      .then(function () { btn.disabled = false; });
+  });
+
+  /* ===== 注册邀请链接 ===== */
+  function loadInvite() {
+    document.getElementById('invite-state').innerHTML = '<div class="op-loading"><span class="op-spinner"></span>邀请信息加载中...</div>';
+    document.getElementById('invite-body').style.display = 'none';
+    OP.openApi('/invite').then(function (d) {
+      document.getElementById('invite-state').innerHTML = '';
+      document.getElementById('invite-body').style.display = 'block';
+      var code = d.invite_code || '';
+      var url = d.invite_url || ('https://your-domain.com/API/register.html?invite=' + code);
+      document.getElementById('inv-code').textContent = code || '--';
+      document.getElementById('inv-url').value = url;
+      document.getElementById('inv-count').textContent = (d.invite_count != null ? d.invite_count : 0) + ' 人';
+    }).catch(function (err) {
+      panelError('invite-state', err, 'loadInvite()');
+    });
+  }
+  document.getElementById('btn-copy-code').addEventListener('click', function () {
+    OP.copyText(document.getElementById('inv-code').textContent, '邀请码已复制');
+  });
+  document.getElementById('btn-copy-url').addEventListener('click', function () {
+    OP.copyText(document.getElementById('inv-url').value, '邀请链接已复制');
+  });
+
+  /* ===== API 端点复制（仪表盘/密钥区复用） ===== */
+  document.querySelectorAll('[data-copy-ep]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var code = btn.parentElement.querySelector('code');
+      OP.copyText(code ? code.textContent.trim() : '', 'API 端点已复制');
+    });
+  });
+
+  /* ===== 平台公告（铃铛） ===== */
+  var noticePanel = document.getElementById('notice-panel');
+  var noticeLoaded = false, noticeList = [];
+
+  function updateBellDot() {
+    var read = Number(localStorage.getItem('open_notice_read') || 0);
+    var maxId = noticeList.reduce(function (m, n) { return Math.max(m, Number(n.id) || 0); }, 0);
+    document.getElementById('bell-dot').style.display = maxId > read ? 'block' : 'none';
+  }
+
+  function renderNoticeList() {
+    var box = document.getElementById('notice-list');
+    if (!noticeList.length) {
+      box.innerHTML = '<div class="op-empty">暂无公告</div>';
+      return;
+    }
+    box.innerHTML = noticeList.map(function (n) {
+      return '<div class="notice-item">' +
+        '<div class="nt">' + OP.escapeHtml(n.title || '') + '</div>' +
+        '<div class="nm">' + OP.escapeHtml(OP.fmtTime(n.created_time) || '') + '</div>' +
+        '<div class="nc">' + OP.escapeHtml(n.content || '') + '</div></div>';
+    }).join('');
+  }
+
+  function loadNotices() {
+    return OP.openApi('/notices').then(function (d) {
+      noticeList = (d && d.list) || [];
+      noticeLoaded = true;
+      renderNoticeList();
+      updateBellDot();
+    }).catch(function () {
+      document.getElementById('notice-list').innerHTML = '<div class="op-empty">公告功能部署中，敬请期待</div>';
+    });
+  }
+  loadNotices(); // 预加载以确定小红点
+
+  document.getElementById('top-bell').addEventListener('click', function (e) {
+    e.stopPropagation();
+    var opening = !noticePanel.classList.contains('show');
+    noticePanel.classList.toggle('show');
+    if (opening) {
+      if (!noticeLoaded) {
+        document.getElementById('notice-list').innerHTML = '<div class="op-loading"><span class="op-spinner"></span>公告加载中...</div>';
+        loadNotices().then(markNoticesRead);
+      } else {
+        markNoticesRead();
+      }
+    }
+  });
+  document.addEventListener('click', function (e) {
+    if (!noticePanel.contains(e.target)) noticePanel.classList.remove('show');
+  });
+  noticePanel.addEventListener('click', function (e) { e.stopPropagation(); });
+
+  function markNoticesRead() {
+    var maxId = noticeList.reduce(function (m, n) { return Math.max(m, Number(n.id) || 0); }, 0);
+    if (maxId > 0) localStorage.setItem('open_notice_read', String(maxId));
+    document.getElementById('bell-dot').style.display = 'none';
+  }
+
+  /* 管理员发公告 */
+  document.getElementById('na-submit').addEventListener('click', function () {
+    var title = document.getElementById('na-title').value.trim();
+    var content = document.getElementById('na-content').value.trim();
+    if (!title || !content) { OP.toast('请填写公告标题和内容'); return; }
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = '发布中...';
+    OP.openApi('/admin/notices', { method: 'POST', data: { title: title, content: content } })
+      .then(function () {
+        OP.toast('公告已发布');
+        document.getElementById('na-title').value = '';
+        document.getElementById('na-content').value = '';
+        noticeLoaded = false;
+        return loadNotices();
+      })
+      .catch(function (err) { OP.toast(err.message || '发布失败'); })
+      .then(function () { btn.disabled = false; btn.textContent = '发布公告'; });
+  });
+</script>
+</body>
+</html>

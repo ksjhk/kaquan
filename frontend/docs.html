@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>API 文档-卡世界开放平台</title>
+<meta name="keywords" content="卡世界开放平台API,卡券API文档,卡券下单接口,订单查询接口" />
+<meta name="description" content="卡世界开放平台接口文档：货源查询（公开）、签名鉴权、下单、订单查询、余额查询的完整参数与示例。" />
+<link rel="icon" href="../assets/logo-icon.png" />
+<link rel="stylesheet" href="open-common.css" />
+<style>
+  .docs-body { width: 1200px; margin: 32px auto 0; display: flex; align-items: flex-start; gap: 28px; }
+  /* 左侧目录 */
+  .docs-side { width: 240px; flex: none; background: #fff; border: 1px solid #eef1f6; border-radius: 14px; padding: 16px 0; position: sticky; top: 84px; max-height: calc(100vh - 110px); overflow-y: auto; }
+  .docs-side .side-group { font-size: 12px; font-weight: 700; color: #a9aeb8; padding: 12px 20px 8px; }
+  .docs-side a { display: block; font-size: 14px; color: #1d1d1f; padding: 9px 20px; border-left: 3px solid transparent; transition: all .15s; }
+  .docs-side a:hover { color: #165dff; background: #f5f8ff; }
+  .docs-side a.active { color: #165dff; font-weight: 700; background: #eaf1ff; border-left-color: #165dff; }
+
+  /* 右侧内容 */
+  .docs-main { flex: 1; min-width: 0; }
+  .doc-block { background: #fff; border: 1px solid #eef1f6; border-radius: 14px; padding: 32px 36px; margin-bottom: 24px; }
+  .doc-block h1 { font-size: 24px; font-weight: 700; margin-bottom: 16px; }
+  .doc-block h2 { font-size: 20px; font-weight: 700; margin-bottom: 14px; padding-top: 4px; }
+  .doc-block h3 { font-size: 15px; font-weight: 700; margin: 22px 0 10px; color: #1d1d1f; }
+  .doc-block p { font-size: 14px; color: #545454; line-height: 26px; margin-bottom: 10px; }
+  .doc-block ul.doc-list { padding-left: 20px; margin-bottom: 10px; }
+  .doc-block ul.doc-list li { font-size: 14px; color: #545454; line-height: 28px; list-style: disc; }
+  .api-line { display: flex; align-items: center; gap: 12px; background: #f7f8fa; border: 1px solid #eef1f6; border-radius: 10px; padding: 12px 16px; margin: 14px 0; flex-wrap: wrap; }
+  .method { font-size: 12px; font-weight: 800; border-radius: 6px; padding: 4px 12px; color: #fff; }
+  .method-get { background: #00b42a; }
+  .method-post { background: #165dff; }
+  .api-url { font-family: Menlo, Monaco, Consolas, monospace; font-size: 13px; color: #1d1d1f; word-break: break-all; }
+  .doc-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  .doc-table th { background: #f7f8fa; color: #1d1d1f; font-weight: 700; text-align: left; padding: 10px 12px; border: 1px solid #eef1f6; white-space: nowrap; }
+  .doc-table td { padding: 9px 12px; border: 1px solid #eef1f6; color: #545454; line-height: 20px; }
+  .doc-table td code, .doc-block p code, .doc-block li code { font-family: Menlo, Monaco, Consolas, monospace; background: #f2f3f5; border-radius: 4px; padding: 1px 6px; font-size: 12px; color: #165dff; }
+  .doc-pre { background: #1d2129; color: #d4e0ff; border-radius: 10px; padding: 18px 20px; font-family: Menlo, Monaco, Consolas, monospace; font-size: 12.5px; line-height: 21px; overflow-x: auto; margin: 12px 0; white-space: pre; }
+  .doc-tip { background: #eaf1ff; border-left: 3px solid #165dff; border-radius: 0 8px 8px 0; padding: 12px 16px; font-size: 13px; color: #3d3d3d; line-height: 24px; margin: 14px 0; }
+  .doc-warn { background: #fff7f0; border-left: 3px solid #ff7d00; border-radius: 0 8px 8px 0; padding: 12px 16px; font-size: 13px; color: #3d3d3d; line-height: 24px; margin: 14px 0; }
+
+  @media (max-width: 1240px) {
+    .docs-body { width: 92%; }
+    .docs-side { width: 200px; }
+    .doc-block { padding: 24px 20px; }
+  }
+  @media (max-width: 860px) {
+    .docs-body { flex-direction: column; }
+    .docs-side { width: 100%; position: static; max-height: none; }
+    /* 列布局下 flex item 会被 pre/表格的 min-content 撑宽，显式约束 100% */
+    .docs-main { width: 100%; }
+    /* 表格固定布局收缩到容器宽，单元格内容断行；长代码串允许断行 */
+    .doc-table { table-layout: fixed; }
+    .doc-table th { white-space: normal; }
+    .doc-table td { word-break: break-all; overflow-wrap: anywhere; }
+    .doc-block p code, .doc-block li code, .doc-table td code { word-break: break-all; }
+    .doc-block { padding: 22px 16px; }
+    .doc-block h1 { font-size: 20px; }
+    .doc-block h2 { font-size: 17px; }
+    .doc-pre { font-size: 12px; padding: 14px 16px; }
+  }
+</style>
+</head>
+<body>
+<div id="op-header-mount"></div>
+
+<div class="docs-body">
+  <!-- 左侧目录 -->
+  <aside class="docs-side" id="docs-side">
+    <div class="side-group">开放平台接入</div>
+    <a href="#open-guide" class="active">接入指引（签名鉴权）</a>
+    <a href="#open-goods">货源接口</a>
+    <a href="#open-order">下单接口</a>
+    <a href="#open-balance">余额查询</a>
+  </aside>
+
+  <!-- 右侧内容 -->
+  <main class="docs-main">
+
+    <!-- ========== 开放平台接入 ========== -->
+
+    <!-- 接入指引 -->
+    <section class="doc-block" id="open-guide">
+      <h2>开放平台接入指引（签名鉴权）</h2>
+      <p>面向 B 端代理商的对外开放业务 API（v1 组）：货源查询、商品详情、余额查询、创建订单（余额扣款）、订单查询。<b>货源查询类接口公开可调用，无需签名（同 IP 限 60 次/分钟）；交易类接口（下单、订单查询、余额查询）需注册创建密钥后签名调用</b>，使用控制台创建的密钥对（app_key / app_secret）。</p>
+
+      <h3>第一步：创建密钥</h3>
+      <p>注册开放平台账号后，进入 <a href="console.html" style="color:#165dff;">控制台</a> →「API密钥」→ 创建密钥，得到 <code>app_key</code>（ak_ 开头）和 <code>app_secret</code>（sk_ 开头，仅创建时完整展示一次，请立即保存）。</p>
+
+      <h3>接口地址</h3>
+      <p>所有业务接口统一走：<code>https://your-domain.com/open-api/v1/</code></p>
+
+      <h3>鉴权参数（每个请求必带）</h3>
+      <table class="doc-table">
+        <tr><th>参数名</th><th>类型</th><th>必填</th><th>描述</th></tr>
+        <tr><td>app_key</td><td>string</td><td>是</td><td>控制台创建的 AppKey</td></tr>
+        <tr><td>timestamp</td><td>number</td><td>是</td><td>秒级 Unix 时间戳，与服务器时间差超过 10 分钟将被拒绝</td></tr>
+        <tr><td>sign</td><td>string</td><td>是</td><td>签名串，算法见下</td></tr>
+      </table>
+
+      <h3>签名算法</h3>
+      <p>1. 取除 <code>sign</code> 外的所有请求参数（含 app_key、timestamp 及业务参数），<b>空值参数跳过不参与</b>；<br />
+      2. 按参数名<b>升序</b>排序，拼接为 <code>k1=v1&amp;k2=v2</code> 形式；<br />
+      3. 末尾追加 <code>&amp;secret=app_secret</code>；<br />
+      4. 对整串做 <b>MD5</b>（32 位小写）即为 sign。</p>
+      <div class="doc-pre">// 示例：假设业务参数 goods_id=4251
+// 待签名串：
+app_key=ak_demo123&amp;goods_id=4251&amp;timestamp=1792464645&amp;secret=sk_demoSecret
+
+sign = md5("app_key=ak_demo&amp;goods_id=4251&amp;timestamp=1792464645&amp;secret=sk_demoSecret")
+     = "9a8b7c6d5e4f3021123456789abcdef0"   // 示例值</div>
+
+      <h3>curl 请求示例（以余额查询为例）</h3>
+      <div class="doc-pre">curl "https://your-domain.com/open-api/v1/balance?app_key=ak_demo123&amp;timestamp=1792464645&amp;sign=9a8b7c6d5e4f3021123456789abcdef0"</div>
+
+      <h3>返回示例（示例）</h3>
+      <div class="doc-pre">{
+  "code": 0,
+  "message": "操作成功",
+  "data": { "balance": 128800 }
+}</div>
+      <div class="doc-tip">签名错误、时间戳超窗、密钥被禁用都会返回非 0 code 及对应 message；请妥善保管 app_secret，不要放在前端页面或客户端代码中。</div>
+    </section>
+
+    <!-- 货源接口 -->
+    <section class="doc-block" id="open-goods">
+      <h2>货源接口 <span style="font-size:13px;color:#00b42a;border:1px solid #00b42a;border-radius:4px;padding:1px 6px;vertical-align:middle;">公开接口，无需签名</span></h2>
+      <p>查询平台在售卡券货源，用于你自己的商城/系统选品展示。<b>注意：本组接口金额字段单位均为「分」</b>（如 cost_price=2877 表示 28.77 元）。</p>
+
+      <h3>1. 货源列表 <span style="font-size:12px;color:#00b42a;">（公开接口，无需签名，匿名 price_rate=1）</span></h3>
+      <div class="api-line"><span class="method method-get">GET</span><span class="api-url">https://your-domain.com/open-api/v1/goods</span></div>
+      <table class="doc-table">
+        <tr><th>参数名</th><th>示例值</th><th>类型</th><th>必填</th><th>描述</th></tr>
+        <tr><td>category_id</td><td>667</td><td>number</td><td>否</td><td>分类 id，缺省取全部</td></tr>
+        <tr><td>current</td><td>1</td><td>number</td><td>否</td><td>页码（默认 1）</td></tr>
+        <tr><td>size</td><td>20</td><td>number</td><td>否</td><td>每页数量</td></tr>
+      </table>
+      <p style="font-size:13px;color:#86909c;">（鉴权参数 app_key / timestamp / sign 必带，下同）</p>
+      <h3>curl 请求示例</h3>
+      <div class="doc-pre">curl "https://your-domain.com/open-api/v1/goods?category_id=667&amp;current=1&amp;size=20&amp;app_key=ak_demo123&amp;timestamp=1792464645&amp;sign=xxxxxxxx"</div>
+      <h3>返回示例（示例）</h3>
+      <div class="doc-pre">{
+  "code": 0,
+  "message": "操作成功",
+  "data": {
+    "list": [
+      {
+        "goods_id": 4251,
+        "goods_name": "爱奇艺星钻会员月卡",
+        "goods_img": "https://your-cdn-domain.com/images/poster/xxx.png",
+        "face_value": 6000,
+        "cost_price": 2877,
+        "sell_price": 6000,
+        "stock_num": 9999
+      }
+    ],
+    "pagination": { "total": 131, "size": 20, "current": 1, "pages": 7 }
+  }
+}</div>
+
+      <h3>2. 商品详情 <span style="font-size:12px;color:#00b42a;">（公开接口，无需签名，匿名 price_rate=1）</span></h3>
+      <div class="api-line"><span class="method method-get">GET</span><span class="api-url">https://your-domain.com/open-api/v1/goods/detail</span></div>
+      <table class="doc-table">
+        <tr><th>参数名</th><th>示例值</th><th>类型</th><th>必填</th><th>描述</th></tr>
+        <tr><td>goods_id</td><td>4251</td><td>number</td><td>是</td><td>货源列表返回的 goods_id</td></tr>
+      </table>
+      <h3>curl 请求示例</h3>
+      <div class="doc-pre">curl "https://your-domain.com/open-api/v1/goods/detail?goods_id=4251&amp;app_key=ak_demo123&amp;timestamp=1792464645&amp;sign=xxxxxxxx"</div>
+      <h3>返回示例（示例）</h3>
+      <div class="doc-pre">{
+  "code": 0,
+  "message": "操作成功",
+  "data": {
+    "goods_id": 4251,
+    "goods_name": "爱奇艺星钻会员月卡",
+    "goods_img": "https://your-cdn-domain.com/images/poster/xxx.png",
+    "face_value": 6000,
+    "cost_price": 2877,
+    "sell_price": 6000,
+    "stock_num": 9999
+  }
+}</div>
+
+      <h3>字段说明</h3>
+      <table class="doc-table">
+        <tr><th>字段</th><th>类型</th><th>描述</th></tr>
+        <tr><td>goods_id</td><td>number</td><td>规格商品 id（下单必传）</td></tr>
+        <tr><td>goods_name</td><td>string</td><td>商品名称</td></tr>
+        <tr><td>goods_img</td><td>string</td><td>商品主图（完整 URL）</td></tr>
+        <tr><td>face_value</td><td>number</td><td>面值（分）</td></tr>
+        <tr><td>cost_price</td><td>number</td><td>成本价（分），下单时按此价从余额扣款</td></tr>
+        <tr><td>sell_price</td><td>number</td><td>建议售价（分）</td></tr>
+        <tr><td>stock_num</td><td>number</td><td>库存数量</td></tr>
+      </table>
+    </section>
+
+    <!-- 下单接口 -->
+    <section class="doc-block" id="open-order">
+      <h2>下单接口 <span style="font-size:13px;color:#f53f3f;border:1px solid #f53f3f;border-radius:4px;padding:1px 6px;vertical-align:middle;">需签名</span></h2>
+      <p>创建订单即按商品成本价（cost_price）从你的账户余额扣款，<b>账户没有余额将无法调用下单接口</b>；余额不足时返回错误提示「余额不足，请充值」。</p>
+
+      <h3>1. 创建订单</h3>
+      <div class="api-line"><span class="method method-post">POST</span><span class="api-url">https://your-domain.com/open-api/v1/order/create</span></div>
+      <table class="doc-table">
+        <tr><th>参数名</th><th>示例值</th><th>类型</th><th>必填</th><th>描述</th></tr>
+        <tr><td>goods_id</td><td>4251</td><td>number</td><td>是</td><td>规格商品 id</td></tr>
+        <tr><td>recharge_account</td><td>13800138000</td><td>string</td><td>是</td><td>充值账号（手机号类须 11 位手机号）</td></tr>
+      </table>
+      <h3>curl 请求示例</h3>
+      <div class="doc-pre">curl -X POST "https://your-domain.com/open-api/v1/order/create" \
+  -d "goods_id=4251" \
+  -d "recharge_account=13800138000" \
+  -d "app_key=ak_demo123" \
+  -d "timestamp=1792464645" \
+  -d "sign=xxxxxxxx"</div>
+      <h3>返回示例（示例）</h3>
+      <div class="doc-pre">{
+  "code": 0,
+  "message": "操作成功",
+  "data": {
+    "order_no": "OPEN20261020120000123456",
+    "cost_price": 2877
+  }
+}</div>
+      <h3>余额不足时（示例）</h3>
+      <div class="doc-pre">{
+  "code": 1001,
+  "message": "余额不足，请充值",
+  "data": null
+}</div>
+
+      <h3>2. 订单查询 <span style="font-size:12px;color:#f53f3f;">（需签名）</span></h3>
+      <div class="api-line"><span class="method method-post">POST</span><span class="api-url">https://your-domain.com/open-api/v1/order/query</span></div>
+      <table class="doc-table">
+        <tr><th>参数名</th><th>示例值</th><th>类型</th><th>必填</th><th>描述</th></tr>
+        <tr><td>order_no</td><td>OPEN20261020120000123456</td><td>string</td><td>是</td><td>下单返回的订单号</td></tr>
+      </table>
+      <h3>curl 请求示例</h3>
+      <div class="doc-pre">curl -X POST "https://your-domain.com/open-api/v1/order/query" \
+  -d "order_no=OPEN20261020120000123456" \
+  -d "app_key=ak_demo123" \
+  -d "timestamp=1792464645" \
+  -d "sign=xxxxxxxx"</div>
+      <h3>返回示例（示例）</h3>
+      <div class="doc-pre">{
+  "code": 0,
+  "message": "操作成功",
+  "data": {
+    "order_no": "OPEN20261020120000123456",
+    "goods_name": "爱奇艺星钻会员月卡",
+    "status": 3,
+    "status_txt": "已到账",
+    "recharge_account": "13800138000",
+    "created_time": "2026-10-20 12:00:00"
+  }
+}</div>
+      <div class="doc-tip">订单状态码含义与下方「附录：订单状态表」一致；充值中的订单建议每 5-10 秒轮询一次。</div>
+    </section>
+
+    <!-- 余额查询 -->
+    <section class="doc-block" id="open-balance">
+      <h2>余额查询 <span style="font-size:13px;color:#f53f3f;border:1px solid #f53f3f;border-radius:4px;padding:1px 6px;vertical-align:middle;">需签名</span></h2>
+      <p>查询当前账户可用余额，<b>单位为「分」</b>（如 balance=128800 表示 1288.00 元）。</p>
+      <div class="api-line"><span class="method method-get">GET</span><span class="api-url">https://your-domain.com/open-api/v1/balance</span></div>
+      <p>请求参数：仅鉴权参数（app_key / timestamp / sign）。</p>
+      <h3>curl 请求示例</h3>
+      <div class="doc-pre">curl "https://your-domain.com/open-api/v1/balance?app_key=ak_demo123&amp;timestamp=1792464645&amp;sign=xxxxxxxx"</div>
+      <h3>返回示例（示例）</h3>
+      <div class="doc-pre">{
+  "code": 0,
+  "message": "操作成功",
+  "data": { "balance": 128800 }
+}</div>
+      <div class="doc-warn">下单接口按成本价实时扣减余额，请保持账户余额充足；余额不足时下单接口将返回「余额不足，请充值」。</div>
+    </section>
+
+    <!-- 全局说明 -->
+
+  </main>
+</div>
+
+<div id="op-footer-mount"></div>
+
+<script src="open-common.js"></script>
+<script>
+  OP.renderHeader('docs');
+  OP.renderFooter();
+
+  // 左侧目录点击 + 滚动高亮
+  var links = Array.prototype.slice.call(document.querySelectorAll('#docs-side a'));
+  var blocks = links.map(function (a) {
+    return document.querySelector(a.getAttribute('href'));
+  });
+  links.forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      e.preventDefault();
+      var target = document.querySelector(a.getAttribute('href'));
+      if (target) window.scrollTo({ top: target.offsetTop - 80, behavior: 'smooth' });
+      links.forEach(function (l) { l.classList.remove('active'); });
+      a.classList.add('active');
+      history.replaceState(null, '', a.getAttribute('href'));
+    });
+  });
+  var ticking = false;
+  window.addEventListener('scroll', function () {
+    if (ticking) return;
+    ticking = true;
+    setTimeout(function () {
+      ticking = false;
+      var y = window.scrollY + 120;
+      var idx = 0;
+      blocks.forEach(function (b, i) { if (b && b.offsetTop <= y) idx = i; });
+      links.forEach(function (l, i) { l.classList.toggle('active', i === idx); });
+    }, 80);
+  });
+  // 支持直接带锚点进入
+  if (location.hash) {
+    var t = document.querySelector(location.hash);
+    if (t) setTimeout(function () { window.scrollTo(0, t.offsetTop - 80); }, 60);
+  }
+</script>
+</body>
+</html>

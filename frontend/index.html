@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>卡世界开放平台-会员权益货源API一站式接入</title>
+<meta name="keywords" content="卡世界开放平台,卡券API,会员权益API,货源API,影视会员API,积分商城货源" />
+<meta name="description" content="卡世界开放平台为开发者与代理商提供会员权益货源 API 一站式接入：爱奇艺、腾讯视频、饿了么、网盘、电影票等 200+ 卡券货源，底价供货，API 对接自动发货，适用积分商城、企业福利、电商导购、社群团购。" />
+<link rel="icon" href="../assets/logo-icon.png" />
+<link rel="stylesheet" href="open-common.css" />
+<style>
+  /* ===== Hero ===== */
+  .hero { position: relative; overflow: hidden; background: linear-gradient(217deg, #9baffe, #9cc6ff 20%, #bed4ff 47%, #ace1ff 71%, #fff 99%); }
+  .hero:after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 160px; background: linear-gradient(180deg, rgba(255,255,255,0), #fff); pointer-events: none; }
+  .hero-inner { width: 1200px; margin: 0 auto; padding: 110px 0 130px; position: relative; z-index: 2; display: flex; align-items: center; gap: 64px; }
+  .hero-main { flex: 1; min-width: 0; }
+  .hero-code { flex: none; width: 470px; background: #1d2129; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 60px rgba(22, 93, 255, .22); animation: heroFloat 3.6s ease-in-out infinite; }
+  @keyframes heroFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  .hero-code-bar { display: flex; gap: 7px; padding: 13px 16px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .hero-code-bar i { width: 10px; height: 10px; border-radius: 50%; }
+  .hero-code-bar i:nth-child(1) { background: #ff5f57; }
+  .hero-code-bar i:nth-child(2) { background: #febc2e; }
+  .hero-code-bar i:nth-child(3) { background: #28c840; }
+  .hero-code .api-pre { margin: 0; border-radius: 0; background: transparent; color: #d4e0ff; font-family: Menlo, Monaco, Consolas, monospace; font-size: 12.5px; line-height: 21px; white-space: pre-wrap; word-break: break-all; overflow-x: auto; }
+  .hero-tag { display: inline-flex; align-items: center; background: rgba(255,255,255,.75); border-radius: 9999px; padding: 6px 18px; font-size: 13px; color: #165dff; font-weight: 700; margin-bottom: 26px; }
+  .hero h1 { font-size: 46px; font-weight: 700; line-height: 60px; color: #1d1d1f; }
+  .hero h1 .hl { color: #165dff; }
+  .hero .sub { margin-top: 24px; font-size: 16px; line-height: 30px; color: #3d3d3d; max-width: 640px; }
+  .hero-btns { display: flex; gap: 16px; margin-top: 44px; }
+  .hero-stats { display: flex; gap: 60px; margin-top: 60px; }
+  .hero-stat .num { font-size: 34px; font-weight: 800; color: #165dff; line-height: 42px; }
+  .hero-stat .lbl { font-size: 13px; color: #545454; margin-top: 2px; }
+
+  /* ===== 能力板块 ===== */
+  .section { width: 1200px; margin: 0 auto; padding-top: 90px; }
+  .section-title { font-size: 32px; font-weight: 700; text-align: center; line-height: 42px; }
+  .section-sub { font-size: 15px; color: #86909c; text-align: center; margin-top: 12px; line-height: 26px; }
+  .cap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
+  .cap-card { background: #fff; border: 1px solid #eef1f6; border-radius: 16px; padding: 32px 28px; transition: all .25s; }
+  .cap-card:hover { box-shadow: 0 12px 32px rgba(22,93,255,.10); transform: translateY(-4px); border-color: #dbe7ff; }
+  .cap-icon { width: 48px; height: 48px; border-radius: 12px; background: #eaf1ff; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+  .cap-icon svg { width: 24px; height: 24px; fill: #165dff; }
+  .cap-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+  .cap-card p { font-size: 13px; color: #86909c; line-height: 24px; }
+
+  /* ===== 货源覆盖 ===== */
+  .brand-wall { margin-top: 44px; background: #f7f9ff; border: 1px solid #e8eeff; border-radius: 20px; padding: 36px 40px; }
+  .brand-tags { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+  .brand-tag { background: #fff; border: 1px solid #e5ebff; color: #1d1d1f; font-size: 14px; border-radius: 9999px; padding: 8px 20px; }
+
+  /* ===== 接入流程 ===== */
+  .step-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 48px; }
+  .step-card { background: #fff; border: 1px solid #eef1f6; border-radius: 16px; padding: 28px 24px; position: relative; }
+  .step-num { font-size: 30px; font-weight: 800; color: #c9d8ff; line-height: 38px; }
+  .step-card h3 { font-size: 16px; font-weight: 700; margin: 10px 0 8px; }
+  .step-card p { font-size: 13px; color: #86909c; line-height: 23px; }
+
+  /* ===== 适用场景 ===== */
+  .scene-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 48px; }
+  .scene-card { border-radius: 16px; padding: 30px 24px; background: linear-gradient(160deg, #f2f7ff, #fff); border: 1px solid #e8eeff; }
+  .scene-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .scene-card p { font-size: 13px; color: #86909c; line-height: 23px; }
+
+  /* ===== 步骤/场景图标（风格与 cap-icon 一致） ===== */
+  .step-icon, .scene-icon { width: 40px; height: 40px; border-radius: 10px; background: #eaf1ff; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+  .step-icon svg, .scene-icon svg { width: 20px; height: 20px; fill: #165dff; }
+
+  /* ===== 品牌/商品无缝轮播 ===== */
+  .mq-row { overflow: hidden; margin-top: 20px; }
+  .mq-track { display: inline-flex; gap: 12px; padding-right: 12px; animation: mqScroll 40s linear infinite; will-change: transform; }
+  .mq-track .brand-tag { flex: none; white-space: nowrap; }
+  .mq-row.mq-rev .mq-track { animation-direction: reverse; }
+  .mq-row:hover .mq-track, .mq-goods:hover .mq-track { animation-play-state: paused; }
+  @keyframes mqScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .mq-goods { overflow: hidden; margin-top: 30px; }
+  .mq-goods-title { font-size: 14px; color: #545454; margin-bottom: 16px; }
+  .gq-card { flex: none; width: 150px; background: #fff; border: 1px solid #e8eeff; border-radius: 12px; padding: 12px; }
+  .gq-img { display: block; width: 100%; aspect-ratio: 1/1; border-radius: 8px; object-fit: cover; background: #f5f7fa; }
+  .gq-name { font-size: 12px; color: #1d1d1f; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gq-face { font-size: 11px; color: #86909c; margin-top: 3px; }
+
+
+  /* ===== CTA ===== */
+  .cta-section { width: 1200px; margin: 90px auto 0; }
+  .cta-box { border-radius: 24px; background: linear-gradient(120deg, #165dff, #2f6bff 60%, #5690ff); padding: 64px 60px; display: flex; align-items: center; justify-content: space-between; color: #fff; }
+  .cta-box h2 { font-size: 30px; font-weight: 700; line-height: 42px; }
+  .cta-box p { margin-top: 10px; font-size: 15px; opacity: .88; }
+  .cta-btns { display: flex; gap: 14px; flex: none; margin-left: 40px; }
+  .cta-btn-white { display: inline-flex; align-items: center; justify-content: center; height: 52px; padding: 0 34px; border-radius: 12px; background: #fff; color: #165dff; font-size: 16px; font-weight: 700; transition: all .2s; }
+  .cta-btn-white:hover { background: #f0f5ff; }
+  .cta-btn-outline { display: inline-flex; align-items: center; justify-content: center; height: 52px; padding: 0 34px; border-radius: 12px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.55); color: #fff; font-size: 16px; transition: all .2s; }
+  .cta-btn-outline:hover { background: rgba(255,255,255,.24); }
+
+  @media (max-width: 1240px) {
+    .hero-inner, .section, .cta-section { width: 92%; }
+    .cap-grid { grid-template-columns: 1fr 1fr; }
+    .step-grid, .scene-grid { grid-template-columns: 1fr 1fr; }
+    .cta-box { flex-direction: column; align-items: flex-start; }
+    .cta-btns { margin: 28px 0 0; }
+    .hero h1 { font-size: 32px; line-height: 46px; }
+  }
+  @media (max-width: 900px) {
+    .hero-inner { flex-direction: column; align-items: stretch; gap: 44px; padding: 70px 0 90px; }
+    .hero-code { width: 100%; }
+    .hero-stats { gap: 32px; flex-wrap: wrap; }
+    .brand-wall { padding: 24px 20px; }
+    .gq-card { width: 130px; }
+  }
+</style>
+</head>
+<body>
+<div id="op-header-mount"></div>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-main">
+    <div class="hero-tag">卡世界开放平台 · 开发者与代理商的货源基础设施</div>
+    <h1>会员权益货源 API<br /><span class="hl">一站式接入，自动发货</span></h1>
+    <div class="sub">
+      爱奇艺、腾讯视频、饿了么、网盘会员、电影票等 200+ 热门卡券货源，官方渠道底价供货。<br />
+      一套 API 完成选品、下单、支付、到账全流程，助你快速搭建自己的权益商城。
+    </div>
+    <div class="hero-btns">
+      <a class="op-btn op-btn-blue op-btn-lg" href="register.html">免费注册</a>
+      <a class="op-btn op-btn-ghost op-btn-lg" href="market.html">进入货源广场</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num" id="stat-goods">--</div><div class="lbl">在售卡券商品</div></div>
+      <div class="hero-stat"><div class="num" id="stat-category">--</div><div class="lbl">货源分类</div></div>
+      <div class="hero-stat"><div class="num">200+</div><div class="lbl">权益品牌覆盖</div></div>
+      <div class="hero-stat"><div class="num">7×24</div><div class="lbl">自动发货</div></div>
+    </div>
+    </div>
+    <div class="hero-code">
+      <div class="hero-code-bar"><i></i><i></i><i></i></div>
+      <div class="api-pre">// 请求
+GET https://your-domain.com/open-api/v1/goods
+    ?category_id=667&amp;current=1&amp;size=20
+    &amp;app_key=ak_xxxxxxxx
+    &amp;timestamp=1792464645
+    &amp;sign=md5(升序拼接串+&amp;secret=sk_xxxxxxxx)
+
+// 返回（示例，金额单位为分）
+{
+  "code": 0,
+  "message": "操作成功",
+  "data": {
+    "list": [
+      { "goods_id": 4251, "goods_name": "爱奇艺星钻会员月卡",
+        "face_value": 6000, "cost_price": 2877, "stock_num": 9999 }
+    ],
+    "pagination": { "total": 131, "current": 1, "pages": 7 }
+  }
+}</div>
+    </div>
+  </div>
+</section>
+
+<!-- 能力板块 -->
+<section class="section">
+  <div class="section-title">为什么选择卡世界开放平台</div>
+  <div class="section-sub">从货源到发货，我们搞定供应链，你专注业务增长</div>
+  <div class="cap-grid">
+    <div class="cap-card">
+      <div class="cap-icon"><svg viewBox="0 0 1024 1024"><path d="M512 64L128 256v512l384 192 384-192V256L512 64zm0 80l288 144-288 144-288-144 288-144zm-320 240l288 144v304L192 688V384zm640 0v304l-288 144V528l288-144z"/></svg></div>
+      <h3>200+ 卡券货源</h3>
+      <p>影视会员、外卖红包、网盘会员、电影票、办公设计、音乐听书等热门权益全覆盖，官方渠道直供，正品保障。</p>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon"><svg viewBox="0 0 1024 1024"><path d="M896 320H128c-35.2 0-64 28.8-64 64v448c0 35.2 28.8 64 64 64h768c35.2 0 64-28.8 64-64V384c0-35.2-28.8-64-64-64zm-32 96v64H160v-64h704zM160 800V608h352v192H160z"/><path d="M320 128h384v64H320zM448 256h128v64H448z"/></svg></div>
+      <h3>底价供货</h3>
+      <p>货源底价透明公开，佣金实时可见，进货成本远低于市场零售价，给代理商留足利润空间。</p>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon"><svg viewBox="0 0 1024 1024"><path d="M792 384H616V208c0-17.6-14.4-32-32-32H440c-17.6 0-32 14.4-32 32v176H232c-17.6 0-32 14.4-32 32v144c0 17.6 14.4 32 32 32h176v176c0 17.6 14.4 32 32 32h144c17.6 0 32-14.4 32-32V592h176c17.6 0 32-14.4 32-32V416c0-17.6-14.4-32-32-32zM128 768h288v64H128zM128 896h512v64H128z"/></svg></div>
+      <h3>API 对接自动发货</h3>
+      <p>标准 RESTful 接口，选品、下单、支付、到账全流程 API 化，7×24 小时系统自动发货，无需人工值守。</p>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon"><svg viewBox="0 0 1024 1024"><path d="M512 96a416 416 0 1 0 0 832 416 416 0 0 0 0-832zm-48 240c0-26.4 21.6-48 48-48s48 21.6 48 48-21.6 48-48 48-48-21.6-48-48zm96 352H464V480h-48v-64h144v208v64z"/></svg></div>
+      <h3>完善的开发文档</h3>
+      <p>清晰的中文接口文档，参数、示例、错误码一应俱全，配合控制台密钥管理，半天即可完成接入。</p>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon"><svg viewBox="0 0 1024 1024"><path d="M512 64C265.6 64 64 265.6 64 512s201.6 448 448 448 448-201.6 448-448S758.4 64 512 64zm192 472c0 4.8-1.6 9.6-4.8 12.8L552 696c-6.4 6.4-16 8-24 4.8s-13.6-12-13.6-21.6V568H336c-13.6 0-24-10.4-24-24v-64c0-13.6 10.4-24 24-24h178.4V344c0-9.6 5.6-18.4 13.6-21.6s17.6-1.6 24 4.8l147.2 147.2c3.2 3.2 4.8 8 4.8 12.8v48.8z"/></svg></div>
+      <h3>稳定秒到账</h3>
+      <p>主流商品直冲秒到账，订单状态实时可查，失败自动退款，资金与订单全程可追踪。</p>
+    </div>
+    <div class="cap-card">
+      <div class="cap-icon"><svg viewBox="0 0 1024 1024"><path d="M880 400h-88V256c0-35.2-28.8-64-64-64H296c-35.2 0-64 28.8-64 64v144h-88c-48.8 0-88 39.2-88 88v304c0 48.8 39.2 88 88 88h736c48.8 0 88-39.2 88-88V488c0-48.8-39.2-88-88-88zM296 256h432v144H296V256zm584 536H144V488h736v304z"/></svg></div>
+      <h3>专属控制台</h3>
+      <p>密钥管理、调用记录、余额明细、邀请返佣一站管理，数据透明，随时掌握业务运行状况。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 货源覆盖 -->
+<section class="section">
+  <div class="section-title">热门货源覆盖</div>
+  <div class="section-sub">主流会员权益品牌持续上架中，以下仅列举部分在售品牌</div>
+  <div class="brand-wall">
+    <div style="font-size:14px;color:#545454;">在售品牌（每日快照更新）：</div>
+    <div class="brand-tags" id="brand-tags">
+      <div class="op-loading" style="padding:20px 0;width:100%;"><span class="op-spinner"></span>品牌数据加载中...</div>
+    </div>
+    <div id="brand-marquee" style="display:none;">
+      <div class="mq-row"><div class="mq-track" id="mq-track-1"></div></div>
+      <div class="mq-row mq-rev"><div class="mq-track" id="mq-track-2"></div></div>
+    </div>
+    <div class="mq-goods" id="goods-marquee" style="display:none;">
+      <div class="mq-goods-title">热门商品：</div>
+      <div class="mq-track" id="gq-track"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 接入流程 -->
+<section class="section">
+  <div class="section-title">四步完成接入</div>
+  <div class="section-sub">从注册到上线，最快当天接入</div>
+  <div class="step-grid">
+    <div class="step-card"><div class="step-icon"><svg viewBox="0 0 1024 1024"><path d="M512 512a176 176 0 1 0 0-352 176 176 0 0 0 0 352zm0 96c-190 0-352 104-352 240v64h704v-64c0-136-162-240-352-240z"/></svg></div><div class="step-num">01</div><h3>注册账号</h3><p>免费注册开放平台账号，与官网商城账号相互独立，1 分钟完成。</p></div>
+    <div class="step-card"><div class="step-icon"><svg viewBox="0 0 1024 1024"><path d="M688 64a288 288 0 0 0-268 388L120 752v208h208v-96h96v-96h96v-72l88-88A288 288 0 1 0 688 64zm-16 288a80 80 0 1 1 0-160 80 80 0 0 1 0 160z"/></svg></div><div class="step-num">02</div><h3>创建密钥</h3><p>登录控制台创建 API 密钥（AppKey / AppSecret），用于接口调用鉴权。</p></div>
+    <div class="step-card"><div class="step-icon"><svg viewBox="0 0 1024 1024"><path d="M368 224L112 512l256 288 64-72-192-216 192-216-64-72zm288 0l-64 72 192 216-192 216 64 72 256-288-256-288z"/></svg></div><div class="step-num">03</div><h3>对接接口</h3><p>参照 API 文档完成选品、下单、支付、订单查询接口对接，支持沙箱联调。</p></div>
+    <div class="step-card"><div class="step-icon"><svg viewBox="0 0 1024 1024"><path d="M512 96l272 336H608v304H416V432H240L512 96zM256 832h512v96H256v-96z"/></svg></div><div class="step-num">04</div><h3>上线营业</h3><p>对接完成即可上线，系统自动发货，佣金实时结算到账户余额。</p></div>
+  </div>
+</section>
+
+<!-- 适用场景 -->
+<section class="section">
+  <div class="section-title">适用场景</div>
+  <div class="section-sub">无论你有流量还是有系统，都能找到合适的变现姿势</div>
+  <div class="scene-grid">
+    <div class="scene-card"><div class="scene-icon"><svg viewBox="0 0 1024 1024"><path d="M512 224l96 192 216 32-156 152 36 214-192-100-192 100 36-214-156-152 216-32 96-192zM192 864h640v64H192z"/></svg></div><h3>积分商城</h3><p>为积分商城接入丰富的会员权益兑换商品，底价采购，提升积分价值感。</p></div>
+    <div class="scene-card"><div class="scene-icon"><svg viewBox="0 0 1024 1024"><path d="M464 320H192a64 64 0 0 0-64 64v96h336v-160zm96 0v160h336v-96a64 64 0 0 0-64-64H368zm-48 224H128v352a64 64 0 0 0 64 64h320V544zm96 0v416h256a64 64 0 0 0 64-64V544H608zM512 288c-70 0-128-58-128-128h64c0 36 28 64 64 64s64-28 64-64h64c0 70-58 128-128 128z"/></svg></div><h3>企业福利</h3><p>员工福利、节日礼品批量采购卡券权益，API 直发员工账号，省时省力。</p></div>
+    <div class="scene-card"><div class="scene-icon"><svg viewBox="0 0 1024 1024"><path d="M96 128h112l64 480h560l96-352H288l24 96h496l-48 160H304l8 64h576v96H240L192 224H96v-96zm240 640a64 64 0 1 0 0 128 64 64 0 0 0 0-128zm384 0a64 64 0 1 0 0 128 64 64 0 0 0 0-128z"/></svg></div><h3>电商导购</h3><p>导购平台、返利 App 嵌入权益商品，丰富品类，提升用户留存与复购。</p></div>
+    <div class="scene-card"><div class="scene-icon"><svg viewBox="0 0 1024 1024"><path d="M384 480a144 144 0 1 0 0-288 144 144 0 0 0 0 288zm256-32a112 112 0 1 0 0-224 112 112 0 0 0 0 224zM384 560c-140 0-256 76-256 176v64h512v-64c0-100-116-176-256-176zm288-16c-20 0-40 2-58 6 52 32 86 84 86 144v106h176v-96c0-88-92-160-204-160z"/></svg></div><h3>社群团购</h3><p>社群团长一键选品转发，低价会员权益天然高转化，佣金自动结算。</p></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-box">
+    <div>
+      <h2>现在接入，开启权益生意</h2>
+      <p>免费注册 · 底价货源 · API 自动发货 · 佣金实时结算</p>
+    </div>
+    <div class="cta-btns">
+      <a class="cta-btn-white" href="register.html">免费注册</a>
+      <a class="cta-btn-outline" href="market.html">进入货源广场</a>
+    </div>
+  </div>
+</section>
+
+<div id="op-footer-mount"></div>
+
+<script src="open-common.js"></script>
+<script>
+  OP.renderHeader('index');
+  OP.renderFooter();
+
+  // 实时统计：在售商品总数 & 分类数 & 品牌墙
+  OP.goodsApi('/goods', { current: 1, size: 1 }).then(function (d) {
+    var total = d && d.pagination && d.pagination.total;
+    document.getElementById('stat-goods').textContent = total ? total + '+' : '200+';
+  }).catch(function () {
+    document.getElementById('stat-goods').textContent = '200+';
+  });
+
+  fetch('market-data-v1.json?t=' + dayKey()).then(function (res) { return res.json(); }).then(function (d) {
+    var cats = (d && d.categories) || [];
+    document.getElementById('stat-category').textContent = cats.length ? cats.length + '' : '--';
+  }).catch(function () {
+    document.getElementById('stat-category').textContent = '--';
+  });
+
+  /* ===== 品牌墙：本地快照轮播优先，失败回退实时静态标签墙 ===== */
+  function dayKey() {
+    var d = new Date();
+    function p(x) { return x < 10 ? '0' + x : x; }
+    return '' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate());
+  }
+
+  /* 复制拼接至铺满容器后整体双份，translateX(-50%) 无缝循环；速度按宽度自适应 */
+  function fillTrack(track, unitHtml) {
+    track.innerHTML = unitHtml;
+    var host = track.parentElement;
+    var guard = 0;
+    while (track.scrollWidth < host.clientWidth && guard < 8) {
+      track.innerHTML += unitHtml;
+      guard++;
+    }
+    track.innerHTML += track.innerHTML;
+    var half = track.scrollWidth / 2;
+    track.style.animationDuration = Math.max(18, Math.round(half / 55)) + 's';
+  }
+
+  function renderStaticWall() {
+    document.getElementById('brand-tags').innerHTML =
+      '<div class="op-empty" style="padding:20px 0;width:100%;">品牌数据暂时无法加载，请稍后刷新</div>';
+  }
+
+  fetch('market-data-v1.json?t=' + dayKey()).then(function (res) {
+    if (!res.ok) throw new Error('快照拉取失败');
+    return res.json();
+  }).then(function (d) {
+    if (!d || !d.goods || !d.goods.length) throw new Error('快照数据为空');
+
+    // 品牌标签双行轮播（第一行向左，第二行反向）
+    var brands = (d.brands && d.brands.length) ? d.brands
+      : (d.categories || []).map(function (c) { return c.name; });
+    if (brands.length) {
+      var tags = brands.map(function (b) {
+        return '<span class="brand-tag">' + OP.escapeHtml(b) + '</span>';
+      }).join('');
+      document.getElementById('brand-tags').style.display = 'none';
+      document.getElementById('brand-marquee').style.display = '';
+      fillTrack(document.getElementById('mq-track-1'), tags);
+      fillTrack(document.getElementById('mq-track-2'), tags);
+    }
+
+    // 热门商品横排轮播（快照前 12 个有效商品：过滤空图/异常名称）
+    var goods = (d.goods || []).filter(function (g) {
+      return g && g.goods_img && g.goods_name && String(g.goods_name).trim().length >= 4;
+    }).slice(0, 12);
+    if (goods.length) {
+      var cards = goods.map(function (g) {
+        return '<div class="gq-card">' +
+          '<img class="gq-img" src="' + OP.escapeHtml(g.goods_img || '') + '" alt="" loading="lazy" onerror="var c=this.closest(\'.gq-card\');if(c)c.style.display=\'none\'" />' +
+          '<div class="gq-name">' + OP.escapeHtml(g.goods_name || '') + '</div>' +
+          (g.face_value ? '<div class="gq-face">面值 ' + OP.escapeHtml(g.face_value) + '</div>' : '') +
+          '</div>';
+      }).join('');
+      document.getElementById('goods-marquee').style.display = '';
+      fillTrack(document.getElementById('gq-track'), cards);
+    }
+  }).catch(function () {
+    renderStaticWall();
+  });
+</script>
+</body>
+</html>

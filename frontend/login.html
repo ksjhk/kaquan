@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>登录-卡世界开放平台</title>
+<meta name="description" content="登录卡世界开放平台控制台，管理 API 密钥、查看调用记录与余额。" />
+<link rel="icon" href="../assets/logo-icon.png" />
+<link rel="stylesheet" href="open-common.css" />
+<style>
+  .auth-wrap { min-height: calc(100vh - 64px); background: linear-gradient(217deg, #9baffe, #9cc6ff 20%, #bed4ff 47%, #ace1ff 71%, #fff 99%); padding: 80px 0 120px; }
+  .auth-card { width: 440px; margin: 0 auto; background: #fff; border-radius: 20px; box-shadow: 0 20px 60px rgba(22,93,255,.12); padding: 44px 44px 36px; }
+  .auth-logo { display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+  .auth-logo img { height: 40px; margin-right: 10px; }
+  .auth-logo span { font-size: 22px; font-weight: 700; color: #2f6bff; }
+  .auth-title { text-align: center; font-size: 18px; font-weight: 700; margin-top: 14px; }
+  .auth-sub { text-align: center; font-size: 12px; color: #86909c; margin-top: 8px; }
+  /* 登录方式 tab */
+  .auth-tabs { display: flex; margin-top: 24px; border-bottom: 1px solid #f0f1f5; }
+  .auth-tab { flex: 1; text-align: center; padding: 12px 0; font-size: 15px; color: #86909c; cursor: pointer; position: relative; transition: color .2s; }
+  .auth-tab.active { color: #165dff; font-weight: 700; }
+  .auth-tab.active:after { content: ''; position: absolute; left: 50%; transform: translateX(-50%); bottom: -1px; width: 32px; height: 3px; border-radius: 2px; background: #165dff; }
+  .auth-form { margin-top: 28px; }
+  .sms-row { display: flex; gap: 10px; }
+  .sms-row input { flex: 1; }
+  .sms-btn { flex: none; width: 120px; height: 46px; border-radius: 10px; border: 1px solid #165dff; background: #fff; color: #165dff; font-size: 13px; cursor: pointer; transition: all .2s; }
+  .sms-btn:hover:not([disabled]) { background: #eaf1ff; }
+  .sms-btn[disabled] { opacity: .5; cursor: not-allowed; }
+  .sms-tip { font-size: 12px; color: #86909c; line-height: 20px; margin-top: 14px; text-align: center; }
+  .form-item { margin-bottom: 18px; }
+  .form-item label { display: block; font-size: 13px; font-weight: 700; color: #1d1d1f; margin-bottom: 8px; }
+  .form-item input { width: 100%; height: 46px; border: 1px solid #e5e6eb; border-radius: 10px; padding: 0 14px; font-size: 14px; outline: none; transition: border-color .2s; }
+  .form-item input:focus { border-color: #165dff; }
+  .auth-submit { width: 100%; height: 48px; border-radius: 12px; border: none; background: #165dff; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; transition: background .2s; margin-top: 6px; }
+  .auth-submit:hover:not([disabled]) { background: #3370ff; }
+  .auth-submit[disabled] { opacity: .6; cursor: not-allowed; }
+  .auth-foot { text-align: center; font-size: 13px; color: #86909c; margin-top: 22px; }
+  .auth-foot a { color: #165dff; }
+  @media (max-width: 520px) { .auth-card { width: 92%; padding: 32px 22px; } }
+</style>
+</head>
+<body>
+<div id="op-header-mount"></div>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo"><img src="../assets/logo-icon.png" alt="卡世界" /><span>卡世界</span></div>
+    <div class="auth-title">登录开放平台</div>
+    <div class="auth-sub">卡世界开放平台账号 · 与官网商城账号相互独立</div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" data-tab="pwd">密码登录</div>
+      <div class="auth-tab" data-tab="sms">验证码登录</div>
+    </div>
+    <form class="auth-form" id="login-form" autocomplete="off">
+      <div class="form-item">
+        <label>手机号</label>
+        <input type="tel" id="mobile" maxlength="11" placeholder="请输入注册手机号" />
+      </div>
+      <div class="form-item">
+        <label>密码</label>
+        <input type="password" id="password" maxlength="32" placeholder="请输入登录密码" />
+      </div>
+      <button type="submit" class="auth-submit" id="submit-btn">登 录</button>
+    </form>
+    <form class="auth-form" id="sms-form" autocomplete="off" style="display:none;">
+      <div class="form-item">
+        <label>手机号</label>
+        <input type="tel" id="sms-mobile" maxlength="11" placeholder="请输入手机号" />
+      </div>
+      <div class="form-item">
+        <label>验证码</label>
+        <div class="sms-row">
+          <input type="text" id="sms-code" maxlength="6" placeholder="短信验证码" />
+          <button type="button" class="sms-btn" id="sms-btn">获取验证码</button>
+        </div>
+      </div>
+      <button type="submit" class="auth-submit" id="sms-submit-btn">登 录</button>
+      <div class="sms-tip">未注册的手机号验证通过后将自动创建账号</div>
+    </form>
+    <div class="auth-foot">还没有开放平台账号？<a href="register.html">免费注册</a></div>
+  </div>
+</div>
+
+<div id="op-footer-mount"></div>
+
+<script src="open-common.js"></script>
+<script>
+  OP.renderHeader();
+  OP.renderFooter();
+
+  if (OP.getToken()) { location.href = 'console.html'; }
+
+  document.getElementById('login-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var m = document.getElementById('mobile').value.trim();
+    var pwd = document.getElementById('password').value;
+    if (!/^1\d{10}$/.test(m)) { OP.toast('请输入正确的 11 位手机号'); return; }
+    if (!pwd) { OP.toast('请输入密码'); return; }
+
+    var btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = '登录中...';
+    OP.openApi('/login', { method: 'POST', data: { mobile: m, password: pwd } })
+      .then(function (d) {
+        if (d && d.token) {
+          OP.setToken(d.token);
+          OP.toast('登录成功，正在进入控制台...');
+          setTimeout(function () { location.href = 'console.html'; }, 600);
+        } else {
+          OP.toast('登录响应异常，请重试');
+          btn.disabled = false;
+          btn.textContent = '登 录';
+        }
+      })
+      .catch(function (err) {
+        OP.toast(err.message || '登录失败，请稍后再试');
+        btn.disabled = false;
+        btn.textContent = '登 录';
+      });
+  });
+
+  /* ===== tab 切换（纯前端显示/隐藏） ===== */
+  document.querySelectorAll('.auth-tab').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('.auth-tab').forEach(function (t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      var isPwd = tab.getAttribute('data-tab') === 'pwd';
+      document.getElementById('login-form').style.display = isPwd ? '' : 'none';
+      document.getElementById('sms-form').style.display = isPwd ? 'none' : '';
+    });
+  });
+
+  /* ===== 验证码登录 ===== */
+  var smsBtn = document.getElementById('sms-btn');
+  var smsMobileInput = document.getElementById('sms-mobile');
+
+  function validSmsMobile() {
+    var m = smsMobileInput.value.trim();
+    if (!/^1\d{10}$/.test(m)) { OP.toast('请输入正确的 11 位手机号'); return null; }
+    return m;
+  }
+
+  function smsCountdown(s) {
+    smsBtn.disabled = true;
+    smsBtn.textContent = s + 's 后重发';
+    var t = setInterval(function () {
+      s--;
+      if (s <= 0) {
+        clearInterval(t);
+        smsBtn.disabled = false;
+        smsBtn.textContent = '获取验证码';
+      } else {
+        smsBtn.textContent = s + 's 后重发';
+      }
+    }, 1000);
+  }
+
+  smsBtn.addEventListener('click', function () {
+    var m = validSmsMobile();
+    if (!m) return;
+    smsBtn.disabled = true;
+    smsBtn.textContent = '发送中...';
+    OP.openApi('/sms-login-code', { method: 'POST', data: { mobile: m } })
+      .then(function () {
+        OP.toast('验证码已发送，请注意查收');
+        smsCountdown(60);
+      })
+      .catch(function (err) {
+        OP.toast(err.message || '验证码发送失败');
+        smsBtn.disabled = false;
+        smsBtn.textContent = '获取验证码';
+      });
+  });
+
+  document.getElementById('sms-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var m = validSmsMobile();
+    if (!m) return;
+    var code = document.getElementById('sms-code').value.trim();
+    if (!code) { OP.toast('请输入验证码'); return; }
+
+    var btn = document.getElementById('sms-submit-btn');
+    btn.disabled = true;
+    btn.textContent = '登录中...';
+    OP.openApi('/login-sms', { method: 'POST', data: { mobile: m, code: code } })
+      .then(function (d) {
+        if (d && d.token) {
+          OP.setToken(d.token);
+          OP.toast(d.is_new ? '已自动创建账号并登录，正在进入控制台...' : '登录成功，正在进入控制台...');
+          setTimeout(function () { location.href = 'console.html'; }, 600);
+        } else {
+          OP.toast('登录响应异常，请重试');
+          btn.disabled = false;
+          btn.textContent = '登 录';
+        }
+      })
+      .catch(function (err) {
+        OP.toast(err.message || '登录失败，请稍后再试');
+        btn.disabled = false;
+        btn.textContent = '登 录';
+      });
+  });
+</script>
+</body>
+</html>
