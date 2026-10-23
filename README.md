@@ -91,6 +91,8 @@
 | 卡世界供货密钥 | 接入 200+ 品牌卡券货源，成本价结算 | `.env` 的 `SUPPLIER_*`（去 [kashijie.com](https://www.kashijie.com) 注册创建密钥即得） |
 | 一台服务器 + MySQL | 跑后端模块和前端站点 | `.env` 的 `DB_*` |
 
+> 商户号怎么申请、每个参数去哪拿、钱具体怎么流：见 [docs/payment.md](docs/payment.md)。系统没有任何内置收款账户，不配支付则收款功能关闭（接口明确报错引导配置）。
+
 最短路径：
 
 1. `mysql ... < sql/schema.sql` 建表
