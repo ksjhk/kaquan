@@ -54,6 +54,14 @@ class OpenRechargeController extends Controller
             return resp(ERROR_PARAMS, null, 'pay_type 仅支持 wechat/alipay');
         }
 
+        // 支付配置自检：本系统没有任何默认收款账户，未配置商户参数时直接给出明确指引
+        if ($payType === 'wechat' && (!env('OPEN_WX_APPID') || !env('OPEN_WX_MCH_ID') || !env('OPEN_WX_API_KEY'))) {
+            return resp(ERROR_UN_KNOW, null, '微信支付未配置：请在 .env 填写 OPEN_WX_APPID / OPEN_WX_MCH_ID / OPEN_WX_API_KEY（配置教程见 docs/payment.md）');
+        }
+        if ($payType === 'alipay' && (!config('alipay.app_id') || !config('alipay.private_key') || !config('alipay.public_key'))) {
+            return resp(ERROR_UN_KNOW, null, '支付宝未配置：请在 .env 填写 ALIPAY_APP_ID / ALIPAY_PRIVATE_KEY / ALIPAY_PUBLIC_KEY（配置教程见 docs/payment.md）');
+        }
+
         $now = time();
         $orderNo = serviceOrderNo('RC');
         DB::table('open_recharge')->insert([
