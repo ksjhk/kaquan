@@ -45,7 +45,7 @@
    （**去掉片段开头的 `<?php` 行**，否则报语法错误）。
    `backend/Commands/OpenRechargeScanCommand.php` 拷到 `app/Console/Commands/`（骨架若无该目录则新建）。
 
-5. **配置 `.env`**：对照 `.env.example` 填写数据库、卡世界供货（`SUPPLIER_*`，在 kashijie.com 注册创建密钥获得）、微信/支付宝、腾讯云短信配置。
+5. **配置 `.env`**：对照 `.env.example` 填写数据库、卡世界供货（`SUPPLIER_*`，在 kashijie.com 注册创建密钥获得）、微信/支付宝、腾讯云短信配置。 支付商户号逐项配置教程（含资金流说明）：见 [payment.md](payment.md)。
 
 6. **充值兜底定时任务**（支付回调之外的主动查单兜底）：
    ```cron
