@@ -54,6 +54,13 @@ class SmsService
         if (!$id) {
             return ['code' => ERROR_UN_KNOW, 'msg' => '发送失败'];
         }
+        // 调试模式：未配置短信服务（SMS_SECRET_ID/SMS_SECRET_KEY 为空）时，
+        // 验证码不作废、随接口直接返回，部署方没接短信也能跑通注册登录全流程。
+        // 正式上线必须配置短信，否则任何人都能看到验证码。
+        if (!(string)env('SMS_SECRET_ID') || !(string)env('SMS_SECRET_KEY')) {
+            \Illuminate\Support\Facades\Log::warning('sms debug mode: captcha returned via api', ['mobile' => $mobile, 'type' => $type]);
+            return ['code' => SUCCESS, 'msg' => '调试模式：未配置短信服务，验证码已直接返回', 'debug_code' => $captcha];
+        }
         $re = (new TencentSmsService())->sendCaptcha($mobile, $captcha);
         if (empty($re['ok'])) {
             // 发送失败：作废该验证码
