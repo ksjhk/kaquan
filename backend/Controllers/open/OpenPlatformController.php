@@ -41,7 +41,7 @@ class OpenPlatformController extends Controller
         if (!$re || ($re['code'] ?? ERROR_UN_KNOW) !== SUCCESS) {
             return resp(ERROR_PARAMS, null, ($re['msg'] ?? '') ?: '发送失败');
         }
-        return resp(SUCCESS);
+        return resp(SUCCESS, !empty($re['debug_code']) ? ['debug_code' => $re['debug_code']] : null);
     }
 
     /**
@@ -155,7 +155,7 @@ class OpenPlatformController extends Controller
         if (!$re || ($re['code'] ?? ERROR_UN_KNOW) !== SUCCESS) {
             return resp(ERROR_PARAMS, null, ($re['msg'] ?? '') ?: '发送失败');
         }
-        return resp(SUCCESS);
+        return resp(SUCCESS, !empty($re['debug_code']) ? ['debug_code' => $re['debug_code']] : null);
     }
 
     /**
