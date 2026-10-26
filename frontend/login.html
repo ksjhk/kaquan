@@ -161,8 +161,13 @@
     smsBtn.disabled = true;
     smsBtn.textContent = '发送中...';
     OP.openApi('/sms-login-code', { method: 'POST', data: { mobile: m } })
-      .then(function () {
-        OP.toast('验证码已发送，请注意查收');
+      .then(function (data) {
+        if (data && data.debug_code) {
+          document.getElementById('sms-code').value = data.debug_code;
+          OP.toast('调试模式：未配置短信服务，验证码已自动填入');
+        } else {
+          OP.toast('验证码已发送，请注意查收');
+        }
         smsCountdown(60);
       })
       .catch(function (err) {
