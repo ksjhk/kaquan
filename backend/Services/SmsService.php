@@ -54,12 +54,15 @@ class SmsService
         if (!$id) {
             return ['code' => ERROR_UN_KNOW, 'msg' => '发送失败'];
         }
-        // 调试模式：未配置短信服务（SMS_SECRET_ID/SMS_SECRET_KEY 为空）时，
-        // 验证码不作废、随接口直接返回，部署方没接短信也能跑通注册登录全流程。
-        // 正式上线必须配置短信，否则任何人都能看到验证码。
+        // 短信三级兜底：自己的腾讯云短信（SMS_* 已配置）→ 卡世界托管短信转发（开箱即用）
+        // → 调试模式（转发也不可达时，验证码随接口返回，前端自动填入）。
         if (!(string)env('SMS_SECRET_ID') || !(string)env('SMS_SECRET_KEY')) {
-            \Illuminate\Support\Facades\Log::warning('sms debug mode: captcha returned via api', ['mobile' => $mobile, 'type' => $type]);
-            return ['code' => SUCCESS, 'msg' => '调试模式：未配置短信服务，验证码已直接返回', 'debug_code' => $captcha];
+            $relay = $this->sendViaRelay($mobile, $captcha);
+            if ($relay['ok']) {
+                return ['code' => SUCCESS, 'msg' => '发送成功'];
+            }
+            \Illuminate\Support\Facades\Log::warning('sms relay fail, debug mode: captcha returned via api', ['mobile' => $mobile, 'type' => $type, 'relay_msg' => $relay['msg'] ?? '']);
+            return ['code' => SUCCESS, 'msg' => '调试模式：短信通道不可用，验证码已直接返回', 'debug_code' => $captcha];
         }
         $re = (new TencentSmsService())->sendCaptcha($mobile, $captcha);
         if (empty($re['ok'])) {
@@ -71,6 +74,35 @@ class SmsService
             return ['code' => ERROR_UN_KNOW, 'msg' => $re['msg'] ?? '发送失败'];
         }
         return ['code' => SUCCESS, 'msg' => '发送成功'];
+    }
+
+    /**
+     * 卡世界托管短信转发：部署方未配置自己的短信时的默认通道。
+     * 转发端服务端限制：同手机号 60s 1 条 & 10 条/天，同来源 IP 50 条/天，全局 2000 条/天。
+     * 本地另有：同手机号同类型 60s 1 条、同 IP 每小时 20 条（见上方 sendLocalCaptcha）。
+     * @return array ['ok'=>bool, 'msg'=>string]
+     */
+    private function sendViaRelay($mobile, $captcha)
+    {
+        $url = (string)env('SMS_RELAY_URL', 'https://www.kashijie.com/open-api/platform/sms-relay');
+        try {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 15,
+                CURLOPT_POST => true,
+                CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+                CURLOPT_POSTFIELDS => json_encode(['mobile' => $mobile, 'captcha' => (string)$captcha]),
+            ]);
+            $raw = curl_exec($ch);
+            curl_close($ch);
+            if ($raw === false) return ['ok' => false, 'msg' => 'relay unreachable'];
+            $res = json_decode($raw, true);
+            if (is_array($res) && ($res['code'] ?? -1) === 0) return ['ok' => true, 'msg' => 'ok'];
+            return ['ok' => false, 'msg' => is_array($res) ? (string)($res['message'] ?? 'relay error') : 'relay bad response'];
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'msg' => $e->getMessage()];
+        }
     }
 
     /**
