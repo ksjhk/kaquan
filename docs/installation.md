@@ -78,7 +78,22 @@ var API_BASE = 'https://your-domain.com'; // 本后端部署地址
    ```
 3. 登录 `console.html`，创建 API 密钥（app_key / app_secret），即可按 `docs/api.md` 签名调用。
 
-## 5. 子目录 / 反向代理部署（可选）
+## 5. 短信验证码配置（部署方自己的短信）
+
+注册/登录短信走的是**你自己申请的腾讯云短信**，与作者、与卡世界平台没有任何关系——短信是按条付费的，凭证内置别人的既会烧钱也有盗刷风险，任何开源项目都不会内置作者的短信凭证。
+
+**没配置短信也能先跑通流程**：`SMS_SECRET_ID` / `SMS_SECRET_KEY` 为空时系统自动进入调试模式，点「获取验证码」后验证码会直接显示在页面上（接口返回 `debug_code`，前端自动填入）。正式上线前必须按下表配置，否则任何人都能看到任意手机号的验证码。
+
+| .env 项 | 从哪里拿 |
+|---|---|
+| `SMS_SECRET_ID` / `SMS_SECRET_KEY` | 腾讯云控制台「访问管理 → API 密钥管理」 |
+| `SMS_SDK_APP_ID` | 腾讯云短信控制台「应用管理」的 SdkAppId |
+| `SMS_SIGN_NAME` | 「签名管理」里已审核通过的签名 |
+| `SMS_TEMPLATE_ID` | 「正文模板管理」里已审核的验证码模板 ID（模板含 1 个变量：验证码） |
+
+签名和模板需要审核（通常几小时到 1 个工作日）。想换阿里云/其他短信通道：只需改写 `backend/Services/TencentSmsService.php` 一个文件。
+
+## 6. 子目录 / 反向代理部署（可选）
 
 若后端挂在某个站点的子路径下（如 `https://主站域名/openpkg-api/` 反代到后端），
 URL 生成会丢失路径前缀，导致支付回调地址错误。修复：在 `app/Providers/AppServiceProvider.php`
@@ -95,7 +110,7 @@ public function boot()
 
 并把 `.env` 的 `APP_URL` 设为完整前缀地址（如 `https://主站域名/openpkg-api`）。
 
-## 6. 自检清单
+## 7. 自检清单
 
 - [ ] `GET /api/open/v1/goods` 匿名可访问（公开接口）
 - [ ] 注册收得到短信验证码
