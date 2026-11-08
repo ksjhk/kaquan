@@ -14,6 +14,7 @@
 Route::prefix('open/platform')->group(function () {
     Route::post('sms', [\App\Http\Controllers\open\OpenPlatformController::class, 'sms']);
     Route::post('register', [\App\Http\Controllers\open\OpenPlatformController::class, 'register']);
+    Route::post('quick-start', [\App\Http\Controllers\open\OpenPlatformController::class, 'quickStart']);
     Route::post('login', [\App\Http\Controllers\open\OpenPlatformController::class, 'login']);
     Route::get('profile', [\App\Http\Controllers\open\OpenPlatformController::class, 'profile']);
     Route::post('profile', [\App\Http\Controllers\open\OpenPlatformController::class, 'updateProfile']);

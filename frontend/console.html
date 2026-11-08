@@ -6,7 +6,7 @@
 <title>控制台-卡世界开放平台</title>
 <meta name="description" content="卡世界开放平台控制台：仪表盘、API 密钥管理、调用记录、个人资料与邀请链接。" />
 <link rel="icon" href="../assets/logo-icon.png" />
-<link rel="stylesheet" href="open-common.css" />
+<link rel="stylesheet" href="open-common.css?v=20261105a" />
 <style>
   body { background: #f5f7fa; }
   /* 顶栏 */
@@ -83,8 +83,10 @@
   .cform-item input { width: 320px; max-width: 100%; height: 42px; border: 1px solid #e5e6eb; border-radius: 8px; padding: 0 12px; font-size: 14px; outline: none; }
   .cform-item input:focus { border-color: #165dff; }
 
-  /* 充值提示 */  
   .pay-note { background: #eaf1ff; border-left: 3px solid #165dff; border-radius: 0 8px 8px 0; padding: 12px 16px; font-size: 13px; color: #3d3d3d; line-height: 24px; margin-bottom: 20px; }
+  .cform-item textarea { width: 100%; min-height: 110px; border: 1px solid #e5e6eb; border-radius: 8px; padding: 10px 12px; font-size: 12px; font-family: Menlo, Monaco, Consolas, monospace; outline: none; resize: vertical; }
+  .cform-item textarea:focus { border-color: #165dff; }
+  .cform-item .field-tip { font-size: 12px; color: #a9aeb8; margin-top: 6px; font-weight: 400; }
 
   /* 资料 */
   .profile-row { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid #f5f6f8; font-size: 14px; }
@@ -290,7 +292,7 @@
         <div class="card-title">快速开始</div>
         <div class="endpoint-row">
           <span class="ep-lbl">API 端点</span>
-          <code>https://your-domain.com/open-api/v1</code>
+          <code>https://www.kashijie.com/open-api/v1</code>
           <button class="mini-btn" data-copy-ep style="flex:none;">复制</button>
         </div>
         <div class="flow">
@@ -308,7 +310,7 @@
           <div class="flow-arrow"><svg viewBox="0 0 1024 1024"><path d="M384 192l-72 72 264 264-264 264 72 72 336-336z"/></svg></div>
           <div class="flow-step">
             <div class="flow-icon"><svg viewBox="0 0 1024 1024"><path d="M368 224L112 512l256 288 64-72-192-216 192-216-64-72zm288 0l-64 72 192 216-192 216 64 72 256-288-256-288z"/></svg></div>
-            <h4>签名调用</h4>
+            <h4>密钥调用</h4>
             <p>参照 <a href="docs.html">API 文档</a> 拼 sign 调接口，到 <a href="market.html">货源广场</a> 查看实时底价与佣金</p>
           </div>
           <div class="flow-arrow"><svg viewBox="0 0 1024 1024"><path d="M384 192l-72 72 264 264-264 264 72 72 336-336z"/></svg></div>
@@ -330,7 +332,7 @@
         </div>
         <div class="endpoint-row">
           <span class="ep-lbl">API 端点</span>
-          <code>https://your-domain.com/open-api/v1</code>
+          <code>https://www.kashijie.com/open-api/v1</code>
           <button class="mini-btn" data-copy-ep style="flex:none;">复制</button>
         </div>
         <div id="key-state"></div>
@@ -548,7 +550,7 @@
 </div>
 
 <script src="open-qrcode.min.js"></script>
-<script src="open-common.js"></script>
+<script src="open-common.js?v=20261105a"></script>
 <script>
   /* ===== 登录守卫 ===== */
   if (!OP.getToken()) {
@@ -1120,7 +1122,7 @@
       document.getElementById('invite-state').innerHTML = '';
       document.getElementById('invite-body').style.display = 'block';
       var code = d.invite_code || '';
-      var url = d.invite_url || ('https://your-domain.com/API/register.html?invite=' + code);
+      var url = d.invite_url || ('https://www.kashijie.com/API/register.html?invite=' + code);
       document.getElementById('inv-code').textContent = code || '--';
       document.getElementById('inv-url').value = url;
       document.getElementById('inv-count').textContent = (d.invite_count != null ? d.invite_count : 0) + ' 人';

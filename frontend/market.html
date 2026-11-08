@@ -7,7 +7,7 @@
 <meta name="keywords" content="卡券货源,会员权益货源,影视会员底价,卡世界货源广场" />
 <meta name="description" content="卡世界开放平台货源广场：爱奇艺、腾讯视频、饿了么、网盘会员、电影票等 200+ 卡券货源实时底价与佣金展示，公开可查。" />
 <link rel="icon" href="../assets/logo-icon.png" />
-<link rel="stylesheet" href="open-common.css" />
+<link rel="stylesheet" href="open-common.css?v=20261105c" />
 <style>
   .market-banner { position: relative; background: linear-gradient(217deg, #9baffe, #9cc6ff 20%, #bed4ff 47%, #ace1ff 71%, #fff 99%); }
   .market-banner:after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 120px; background: linear-gradient(180deg, rgba(255,255,255,0), #fff); pointer-events: none; }
@@ -15,6 +15,16 @@
   .market-banner h1 { font-size: 32px; font-weight: 700; }
   .market-banner p { margin-top: 10px; font-size: 15px; color: #3d3d3d; }
 
+  .supply-section { width: 1200px; margin: 30px auto 0; }
+  .supply-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .supply-desc { font-size: 13px; color: #86909c; margin-bottom: 16px; }
+  .supply-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .supply-card { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 24px 26px; background: #fff; border: 1px solid #e7edfb; border-radius: 14px; text-decoration: none; color: #1d1d1f; transition: all .2s; }
+  .supply-card:hover { border-color: #9dbdff; box-shadow: 0 10px 28px rgba(22,93,255,.10); transform: translateY(-2px); }
+  .supply-card h3 { font-size: 19px; margin-bottom: 8px; }
+  .supply-card p { color: #667085; font-size: 13px; line-height: 22px; }
+  .supply-tag { display: inline-block; color: #165dff; background: #eaf1ff; border-radius: 4px; padding: 2px 7px; font-size: 11px; margin-right: 6px; }
+  .supply-go { flex: none; color: #165dff; font-size: 14px; font-weight: 700; }
   .market-body { width: 1200px; margin: 40px auto 0; display: flex; align-items: flex-start; gap: 28px; }
 
   /* 左侧分类 */
@@ -72,6 +82,62 @@
     .cat-side-title { width: 100%; }
     .cat-item { border-left: none; border-radius: 8px; padding: 8px 14px; }
     .goods-grid { grid-template-columns: repeat(2, 1fr); }
+    .supply-section { width: calc(100% - 32px); margin-top: 22px; }
+    .supply-grid { grid-template-columns: 1fr; }
+    .supply-card { padding: 20px; }
+  }
+
+  /* 2026-11-05 三板块与网页实时预览 */
+  .market-section-tabs { width: 1200px; margin: 28px auto 0; display: flex; gap: 12px; padding: 6px; background: #f2f4f8; border-radius: 14px; }
+  .market-section-tab { flex: 1; height: 46px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 10px; background: transparent; color: #4e5969; font-size: 15px; font-weight: 600; cursor: pointer; transition: all .2s; }
+  .market-section-tab:hover { color: #165dff; background: rgba(255,255,255,.65); }
+  .market-section-tab.active { color: #165dff; background: #fff; box-shadow: 0 3px 12px rgba(22,93,255,.10); }
+  .market-preview-panel { width: 1200px; margin: 24px auto 0; }
+  .market-preview-panel[hidden] { display: none; }
+  .preview-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 16px; }
+  .preview-head h2 { font-size: 22px; margin-bottom: 6px; }
+  .preview-head p { font-size: 13px; color: #86909c; line-height: 22px; }
+  .preview-actions { display: flex; gap: 14px; flex: none; font-size: 13px; }
+  .preview-actions a { color: #165dff; text-decoration: none; }
+  .preview-frame-wrap { height: 76vh; min-height: 620px; max-height: 820px; overflow: hidden; border: 1px solid #e7edfb; border-radius: 16px; background: #fff; box-shadow: 0 12px 32px rgba(22,93,255,.08); }
+  .preview-frame-wrap iframe { display: block; width: 100%; height: 100%; border: 0; background: #fff; }
+  .market-body.market-panel-hidden { display: none; }
+  @media(max-width:768px) {
+    .market-section-tabs { width: calc(100% - 32px); margin-top: 20px; gap: 4px; padding: 4px; }
+    .market-section-tab { height: 42px; font-size: 14px; }
+    .market-preview-panel { width: 100%; margin-top: 18px; }
+    .preview-head { align-items: flex-start; padding: 0 16px; }
+    .preview-head h2 { font-size: 19px; }
+    .preview-actions { padding-top: 4px; }
+    .preview-frame-wrap { min-height: 580px; height: 72vh; border-left: 0; border-right: 0; border-radius: 0; }
+  }
+
+  /* 2026-11-05 三板块大卡片：保留原切换逻辑，整卡可点击 */
+  .market-section-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 0; background: transparent; border-radius: 0; }
+  .market-section-tab { position: relative; min-height: 142px; height: auto; padding: 22px 54px 22px 24px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 9px; border: 1px solid #e7edfb; border-radius: 14px; background: #fff; color: #1d1d1f; font-size: 19px; font-weight: 700; text-align: left; }
+  .market-section-tab:after { content: "→"; position: absolute; right: 24px; top: 22px; color: #a9aeb8; font-size: 22px; font-weight: 400; }
+  .market-section-tab:hover { color: #165dff; background: #fff; border-color: #9dbdff; box-shadow: 0 10px 28px rgba(22,93,255,.10); transform: translateY(-2px); }
+  .market-section-tab.active { color: #165dff; background: #f8faff; border-color: #165dff; box-shadow: 0 10px 28px rgba(22,93,255,.10); }
+  .market-section-tab.active:after { color: #165dff; }
+  .market-section-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .market-section-tags > span { display: inline-block; color: #165dff; background: #eaf1ff; border-radius: 4px; padding: 2px 7px; font-size: 11px; line-height: 16px; font-weight: 400; }
+  .market-section-desc { display: block; color: #667085; font-size: 13px; line-height: 22px; font-weight: 400; }
+  @media(max-width:1240px) {
+    .market-section-tabs, .market-preview-panel { width: 92%; }
+  }
+  @media(max-width:768px) {
+    .market-section-tabs { width: calc(100% - 32px); grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0; }
+    .market-section-tab { min-height: 126px; height: auto; padding: 16px 12px; gap: 8px; border-radius: 12px; font-size: 16px; }
+    .market-section-tab:after, .market-section-tags { display: none; }
+    .market-section-desc { font-size: 11px; line-height: 18px; }
+    .market-preview-panel { width: 100%; }
+  }
+  /* 2026-11-05 会员权益文档入口：与酒店、电影预览标题区同位 */
+  .market-member-intro { margin-top: 24px; }
+  #market-panel-member { margin-top: 24px; }
+  @media(max-width:768px) {
+    .market-member-intro { margin-top: 18px; }
+    #market-panel-member { margin-top: 18px; }
   }
 </style>
 </head>
@@ -85,10 +151,46 @@
   </div>
 </section>
 
-<div class="market-body">
+<nav class="market-section-tabs" aria-label="货源板块">
+  <button type="button" class="market-section-tab active" data-market-tab="member">会员权益
+    <span class="market-section-tags"><span>实时底价</span><span>佣金透明</span></span>
+    <span class="market-section-desc">影视、办公、生活等会员卡券，查看供货底价与推广佣金。</span>
+  </button>
+  <button type="button" class="market-section-tab" data-market-tab="hotel">酒店预订
+    <span class="market-section-tags"><span>实时房价</span><span>酒店确认</span></span>
+    <span class="market-section-desc">酒店搜索、详情、房型报价、创建订单与状态查询。</span>
+  </button>
+  <button type="button" class="market-section-tab" data-market-tab="movie">电影票
+    <span class="market-section-tags"><span>在线选座</span><span>自动出票</span></span>
+    <span class="market-section-desc">影片、影院、场次、座位查询，锁座下单与取票码查询。</span>
+  </button>
+</nav>
+
+<section class="market-preview-panel market-member-intro" id="market-member-intro">
+  <div class="preview-head">
+    <div><h2>会员权益</h2><p>会员卡券实时货源，可查看供货底价、推广佣金与商品信息。</p></div>
+    <div class="preview-actions"><a href="docs.html#open-goods">API 文档</a></div>
+  </div>
+</section>
+
+<section class="market-preview-panel" id="market-panel-hotel" hidden>
+  <div class="preview-head">
+    <div><h2>酒店预订</h2><p>酒店搜索、详情、房型报价和可订检查无需密钥；下单与订单查询需密钥。</p></div>
+    <div class="preview-actions"><a href="docs.html#open-hotel">API 文档</a></div>
+  </div>
+</section>
+
+<section class="market-preview-panel" id="market-panel-movie" hidden>
+  <div class="preview-head">
+    <div><h2>电影票</h2><p>城市、影片、影院、场次和座位查询无需密钥；锁座下单与订单查询需密钥。</p></div>
+    <div class="preview-actions"><a href="docs.html#open-movie">API 文档</a></div>
+  </div>
+</section>
+
+<div class="market-body" id="market-panel-member">
   <!-- 左侧分类 -->
   <aside class="cat-side">
-    <div class="cat-side-title">货源分类</div>
+    <div class="cat-side-title">会员卡券分类</div>
     <div id="cat-list">
       <div class="cat-item active" data-id="">全部货源</div>
       <div class="op-loading" style="padding:20px 0;"><span class="op-spinner"></span>分类加载中...</div>
@@ -109,7 +211,8 @@
 
 <div id="op-footer-mount"></div>
 
-<script src="open-common.js"></script>
+<script src="open-common.js?v=20261105c">
+</script>
 <script>
   OP.renderHeader('market');
   OP.renderFooter();
@@ -187,9 +290,15 @@
       });
   }
 
-  /* ===== 分类（快照不可用时的回退：仅全部货源） ===== */
+  /* ===== 分类（实时接口回退路径） ===== */
   function loadCatsLive() {
-    document.getElementById('cat-list').innerHTML = '<div class="cat-item active" data-id="">全部货源</div>';
+    OP.kssApi('/category/index', {}).then(function (d) {
+      renderCats((d && d.category) || []);
+    }).catch(function (err) {
+      document.getElementById('cat-list').innerHTML =
+        '<div class="cat-item active" data-id="">全部货源</div>' +
+        '<div class="op-empty" style="padding:16px 12px;text-align:left;">' + OP.escapeHtml(err.message || '分类加载失败') + '</div>';
+    });
   }
 
   document.getElementById('cat-list').addEventListener('click', function (e) {
@@ -258,12 +367,10 @@
     pager.innerHTML = '';
     stateBox.innerHTML = '<div class="op-loading"><span class="op-spinner"></span>货源加载中...</div>';
     totalBox.textContent = '正在加载货源...';
-    OP.goodsApi('/goods', { category_id: state.categoryId, current: state.current, size: state.size })
+    OP.kssApi('/goods/index', { category_id: state.categoryId, current: state.current, size: state.size })
       .then(function (d) {
         stateBox.innerHTML = '';
         var list = (d && d.list) || [];
-        // v1 接口金额为分，转为元供卡片展示
-        list.forEach(function (g) { g.goods_price = OP.fen2yuan(g.cost_price); });
         var p = d && d.pagination;
         state.pages = p ? p.pages : 1;
         totalBox.innerHTML = '共 <b>' + (p ? p.total : list.length) + '</b> 个在售货源';
@@ -288,6 +395,28 @@
     loadCatsLive();
     loadGoods();
   });
+  /* ===== 2026-11-05 会员权益 / 酒店预订 / 电影票三板块 ===== */
+  (function () {
+    var tabs = document.querySelectorAll('[data-market-tab]');
+    var member = document.getElementById('market-panel-member');
+    var memberIntro = document.getElementById('market-member-intro');
+    function activate(name) {
+      tabs.forEach(function (tab) { tab.classList.toggle('active', tab.getAttribute('data-market-tab') === name); });
+      member.classList.toggle('market-panel-hidden', name !== 'member');
+      memberIntro.hidden = name !== 'member';
+      ['hotel', 'movie'].forEach(function (type) {
+        var panel = document.getElementById('market-panel-' + type);
+        panel.hidden = name !== type;
+        if (name === type) {
+          var frame = panel.querySelector('iframe[data-src]');
+          if (frame) { frame.src = frame.getAttribute('data-src'); frame.removeAttribute('data-src'); }
+        }
+      });
+      if (name !== 'member') window.scrollTo({ top: document.querySelector('.market-section-tabs').offsetTop - 76, behavior: 'smooth' });
+    }
+    tabs.forEach(function (tab) { tab.addEventListener('click', function () { activate(tab.getAttribute('data-market-tab')); }); });
+    if (location.hash === '#hotel' || location.hash === '#movie') activate(location.hash.slice(1));
+  })();
 </script>
 </body>
 </html>

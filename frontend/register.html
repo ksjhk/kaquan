@@ -6,7 +6,7 @@
 <title>注册开放平台账号-卡世界开放平台</title>
 <meta name="description" content="注册卡世界开放平台账号，免费接入 200+ 卡券货源 API，底价供货、自动发货。开放平台账号与官网商城账号相互独立。" />
 <link rel="icon" href="../assets/logo-icon.png" />
-<link rel="stylesheet" href="open-common.css" />
+<link rel="stylesheet" href="open-common.css?v=20261020i" />
 <style>
   .auth-wrap { min-height: calc(100vh - 64px); background: linear-gradient(217deg, #9baffe, #9cc6ff 20%, #bed4ff 47%, #ace1ff 71%, #fff 99%); padding: 60px 0 100px; }
   .auth-card { width: 440px; margin: 0 auto; background: #fff; border-radius: 20px; box-shadow: 0 20px 60px rgba(22,93,255,.12); padding: 44px 44px 36px; }
@@ -66,7 +66,7 @@
 
 <div id="op-footer-mount"></div>
 
-<script src="open-common.js"></script>
+<script src="open-common.js?v=20261020i"></script>
 <script>
   OP.renderHeader();
   OP.renderFooter();
@@ -91,13 +91,8 @@
     smsBtn.disabled = true;
     smsBtn.textContent = '发送中...';
     OP.openApi('/sms', { method: 'POST', data: { mobile: m } })
-      .then(function (data) {
-        if (data && data.debug_code) {
-          document.getElementById('code').value = data.debug_code;
-          OP.toast('调试模式：未配置短信服务，验证码已自动填入');
-        } else {
-          OP.toast('验证码已发送，请注意查收');
-        }
+      .then(function () {
+        OP.toast('验证码已发送，请注意查收');
         countdown(60);
       })
       .catch(function (err) {

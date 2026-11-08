@@ -95,6 +95,51 @@ class SupplierService
         return null;
     }
 
+    /**
+     * 酒店查询（卡世界公开上游 API）
+     * $endpoint: search / detail / rooms / validate；返回上游原始 JSON 数组，失败 null。
+     */
+    public function hotelQuery($endpoint, array $params = [])
+    {
+        if (!in_array($endpoint, ['search', 'detail', 'rooms', 'validate'], true)) return null;
+        return $this->getRaw('/hotel/' . $endpoint, $params, $endpoint === 'rooms' ? 60 : 30, false);
+    }
+
+    /**
+     * 电影票查询（卡世界公开上游 API）
+     * $endpoint: city / films / wait-list / region / brand / cinemas / schedule /
+     *            showdate / film-info / cinema-info / show / seats。
+     */
+    public function movieQuery($endpoint, array $params = [])
+    {
+        $allowed = ['city', 'films', 'wait-list', 'region', 'brand', 'cinemas', 'schedule',
+            'showdate', 'film-info', 'cinema-info', 'show', 'seats'];
+        if (!in_array($endpoint, $allowed, true)) return null;
+        return $this->postRaw('/movie/' . $endpoint, $params, 60, false);
+    }
+
+    /** 酒店下单：使用 SUPPLIER_* 对应的上游余额，失败按上游规则退款。 */
+    public function hotelOrderCreate(array $params)
+    {
+        return $this->postRaw('/hotel/order/create', $params, 90);
+    }
+
+    public function hotelOrderQuery($orderNo)
+    {
+        return $this->postRaw('/hotel/order/query', ['order_no' => (string)$orderNo], 40);
+    }
+
+    /** 电影票锁座下单：buy_seats 必须传座位对象 JSON 数组字符串，确保参与签名。 */
+    public function movieOrderCreate(array $params)
+    {
+        return $this->postRaw('/movie/order/create', $params, 90);
+    }
+
+    public function movieOrderQuery($orderNo)
+    {
+        return $this->postRaw('/movie/order/query', ['order_no' => (string)$orderNo], 40);
+    }
+
     /* ==================== 内部 ==================== */
 
     private function get($path, array $params)
@@ -112,6 +157,31 @@ class SupplierService
     {
         try {
             $resp = Http::timeout(15)->asJson()->post($this->base . $path, $this->signParams($params));
+            $json = $resp->json();
+            return is_array($json) ? $json : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /** 查询酒店等使用 success/code=200 等非卡券标准响应的上游接口时，保留原始响应。 */
+    private function getRaw($path, array $params, $timeout = 30, $needSign = true)
+    {
+        try {
+            $query = $needSign ? $this->signParams($params) : $params;
+            $resp = Http::timeout($timeout)->get($this->base . $path, $query);
+            $json = $resp->json();
+            return is_array($json) ? $json : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    private function postRaw($path, array $params, $timeout = 30, $needSign = true)
+    {
+        try {
+            $body = $needSign ? $this->signParams($params) : $params;
+            $resp = Http::timeout($timeout)->asJson()->post($this->base . $path, $body);
             $json = $resp->json();
             return is_array($json) ? $json : null;
         } catch (\Throwable $e) {

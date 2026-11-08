@@ -7,7 +7,7 @@
 <meta name="keywords" content="卡世界开放平台,卡券API,会员权益API,货源API,影视会员API,积分商城货源" />
 <meta name="description" content="卡世界开放平台为开发者与代理商提供会员权益货源 API 一站式接入：爱奇艺、腾讯视频、饿了么、网盘、电影票等 200+ 卡券货源，底价供货，API 对接自动发货，适用积分商城、企业福利、电商导购、社群团购。" />
 <link rel="icon" href="../assets/logo-icon.png" />
-<link rel="stylesheet" href="open-common.css" />
+<link rel="stylesheet" href="open-common.css?v=20261020h" />
 <style>
   /* ===== Hero ===== */
   .hero { position: relative; overflow: hidden; background: linear-gradient(217deg, #9baffe, #9cc6ff 20%, #bed4ff 47%, #ace1ff 71%, #fff 99%); }
@@ -135,7 +135,7 @@
     <div class="hero-code">
       <div class="hero-code-bar"><i></i><i></i><i></i></div>
       <div class="api-pre">// 请求
-GET https://your-domain.com/open-api/v1/goods
+GET https://www.kashijie.com/open-api/v1/goods
     ?category_id=667&amp;current=1&amp;size=20
     &amp;app_key=ak_xxxxxxxx
     &amp;timestamp=1792464645
@@ -255,21 +255,21 @@ GET https://your-domain.com/open-api/v1/goods
 
 <div id="op-footer-mount"></div>
 
-<script src="open-common.js"></script>
+<script src="open-common.js?v=20261020h"></script>
 <script>
   OP.renderHeader('index');
   OP.renderFooter();
 
   // 实时统计：在售商品总数 & 分类数 & 品牌墙
-  OP.goodsApi('/goods', { current: 1, size: 1 }).then(function (d) {
+  OP.kssApi('/goods/index', { current: 1, size: 1 }).then(function (d) {
     var total = d && d.pagination && d.pagination.total;
     document.getElementById('stat-goods').textContent = total ? total + '+' : '200+';
   }).catch(function () {
     document.getElementById('stat-goods').textContent = '200+';
   });
 
-  fetch('market-data-v1.json?t=' + dayKey()).then(function (res) { return res.json(); }).then(function (d) {
-    var cats = (d && d.categories) || [];
+  OP.kssApi('/category/index', {}).then(function (d) {
+    var cats = (d && d.category) || [];
     document.getElementById('stat-category').textContent = cats.length ? cats.length + '' : '--';
   }).catch(function () {
     document.getElementById('stat-category').textContent = '--';
@@ -297,8 +297,20 @@ GET https://your-domain.com/open-api/v1/goods
   }
 
   function renderStaticWall() {
-    document.getElementById('brand-tags').innerHTML =
-      '<div class="op-empty" style="padding:20px 0;width:100%;">品牌数据暂时无法加载，请稍后刷新</div>';
+    OP.kssApi('/category/index', {}).then(function (d) {
+      var brands = (d && d.b_list) || [];
+      var box = document.getElementById('brand-tags');
+      if (brands.length) {
+        box.innerHTML = brands.slice(0, 40).map(function (b) {
+          return '<span class="brand-tag">' + OP.escapeHtml(b) + '</span>';
+        }).join('');
+      } else {
+        box.innerHTML = '<div class="op-empty" style="padding:20px 0;width:100%;">品牌数据加载中</div>';
+      }
+    }).catch(function () {
+      document.getElementById('brand-tags').innerHTML =
+        '<div class="op-empty" style="padding:20px 0;width:100%;">品牌数据暂时无法加载，请稍后刷新</div>';
+    });
   }
 
   fetch('market-data-v1.json?t=' + dayKey()).then(function (res) {

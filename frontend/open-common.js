@@ -2,11 +2,11 @@
 (function (w) {
   'use strict';
 
-  /* ===== 接口配置 ===== */
-  // ===== 部署配置：改成你自己的域名 =====
-  var API_BASE = 'https://your-domain.com';        // 开放平台后端（本项目 backend 部署地址）
-  var OPEN_API = API_BASE + '/open-api/platform';  // 开放平台账号体系
-  var GOODS_API = API_BASE + '/open-api/v1';       // 货源数据（本平台 v1 公开接口，无需签名）
+  /* ===== 接口配置：部署时改成你自己的域名 ===== */
+  var API_BASE = 'https://your-domain.com';
+  var OPEN_API = API_BASE + '/open-api/platform';
+  var GOODS_API = API_BASE + '/open-api/v1';
+  var KSS_API = GOODS_API; // 兼容新版页面的货源方法名
   var TOKEN_KEY = 'open_token';
 
   /* ===== token ===== */
@@ -65,6 +65,20 @@
       if (err && err.message && err.message !== 'Failed to fetch') throw err;
       throw new Error('货源服务暂时无法连接，请稍后刷新重试');
     });
+  }
+
+  /* 新版页面沿用 kssApi 名称；这里映射到公开 v1，不依赖任何内部货源接口。 */
+  function kssApi(path, query) {
+    if (path === '/goods/index') return goodsApi('/goods', query);
+    if (path === '/category/index') {
+      return fetch('market-data-v1.json').then(function (res) {
+        if (!res.ok) throw new Error('分类数据加载失败');
+        return res.json();
+      }).then(function (data) {
+        return { category: (data && data.categories) || [] };
+      });
+    }
+    return goodsApi(path, query);
   }
 
   /* ===== 工具 ===== */
@@ -198,7 +212,7 @@
         '<div class="op-modal-box">' +
         '<button class="op-modal-close" id="op-dev-qr-close">&times;</button>' +
         '<div class="op-modal-title">联系开发者</div>' +
-        '<img src="assets/wecom-qr.png" alt="企业微信二维码" />' +
+        '<img src="https://www.kashijie.com/assets/wecom-qr-dev-1020.jpg" alt="企业微信二维码" />' +
         '<div class="op-modal-tip">扫码添加企业微信</div>' +
         '</div></div>');
       var modal = document.getElementById('op-dev-qr-modal');
@@ -218,9 +232,9 @@
 
   /* ===== 导出 ===== */
   w.OP = {
-    OPEN_API: OPEN_API, GOODS_API: GOODS_API,
+    OPEN_API: OPEN_API, GOODS_API: GOODS_API, KSS_API: KSS_API,
     getToken: getToken, setToken: setToken, clearToken: clearToken,
-    toast: toast, openApi: openApi, goodsApi: goodsApi,
+    toast: toast, openApi: openApi, goodsApi: goodsApi, kssApi: kssApi,
     escapeHtml: escapeHtml, fen2yuan: fen2yuan, maskMobile: maskMobile, fmtTime: fmtTime, fmtYuan: fmtYuan,
     copyText: copyText, getQuery: getQuery,
     renderHeader: renderHeader, renderFooter: renderFooter

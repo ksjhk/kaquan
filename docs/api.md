@@ -1,5 +1,7 @@
 # API 文档
 
+文档版本：`v2026.11.08`
+
 开放平台接口分两组：
 
 | 分组 | 前缀 | 鉴权 | 说明 |
@@ -93,10 +95,13 @@
 | 接口 | 说明 |
 |---|---|
 | `POST /sms` | 注册验证码 `{mobile}`（真实短信，60s 限频） |
+| `POST /quick-start` | 新手机号 `{mobile}` → 自动注册、生成首组密钥并返回 `{token, mobile, app_key, app_secret, balance}`；公开接口，同 IP 每小时 3 次 |
 | `POST /register` | `{mobile, code, password, name?, invite_code?}` → `{token, user}` |
 | `POST /login` | 账号密码登录 → `{token, user}` |
 | `POST /sms-login-code` | 登录验证码（未注册手机号也发） |
 | `POST /login-sms` | 验证码登录，未注册自动注册 → `{token, is_new, user}` |
+
+`quick-start` 仅接受未注册手机号；已注册手机号必须登录后在控制台创建密钥，不会通过公开接口读取或追加他人账号的密钥。新账号初始余额为 0。
 
 token 有效期 7 天，后续请求 Header 带 `token: xxx`。
 
@@ -144,3 +149,50 @@ token 有效期 7 天，后续请求 Header 带 `token: xxx`。
 | 10 | 登录失效 |
 | 11 | app_key 无效或已禁用 |
 | -9001 | 余额不足，请充值 |
+
+
+---
+
+## 六、酒店／电影票上游客户端
+
+`SupplierService` 除卡券货源外，也可直接调用卡世界公开的酒店与电影票 API。酒店、电影只读查询不签名，无需供货密钥；下单和订单查询使用 `.env` 中现有的 `SUPPLIER_API_BASE / SUPPLIER_APP_KEY / SUPPLIER_APP_SECRET`，订单从该密钥对应的上游账户余额扣费，履约失败由上游自动退款。
+
+> 这些方法是部署方后端使用的公开 API 客户端，不依赖卡世界内部服务器，也不包含任何内部履约凭证。
+
+### 可用方法
+
+| 方法 | 用途 |
+|---|---|
+| `hotelQuery($endpoint, $params)` | 酒店 `search / detail / rooms / validate` 查询（公开） |
+| `hotelOrderCreate($params)` | 创建酒店订单（余额扣费） |
+| `hotelOrderQuery($orderNo)` | 查询酒店订单与确认状态 |
+| `movieQuery($endpoint, $params)` | 城市、影片、影院、场次、座位等查询（公开） |
+| `movieOrderCreate($params)` | 锁座并创建电影票订单（余额扣费） |
+| `movieOrderQuery($orderNo)` | 查询出票状态与取票码 |
+
+`movieQuery` 支持的 endpoint：`city / films / wait-list / region / brand / cinemas / schedule / showdate / film-info / cinema-info / show / seats`。
+
+所有方法返回上游原始 JSON 数组，网络异常或非 JSON 响应返回 `null`。卡券接口的 `code=0` 与酒店接口的 `success=true`、电影浏览接口的 `code=200` 应按各自响应判断。
+
+### 示例
+
+```php
+use App\Http\Services\SupplierService;
+
+$supplier = new SupplierService();
+
+$hotels = $supplier->hotelQuery('search', [
+    'cityName' => '北京',
+    'checkInDate' => '2026-11-10',
+    'checkOutDate' => '2026-11-11',
+    'pageIndex' => 1,
+    'pageSize' => 15,
+]);
+
+$cities = $supplier->movieQuery('city');
+$films = $supplier->movieQuery('films', ['cityId' => '110100']);
+```
+
+酒店下单参数：`hotelID / ratePlanID / checkInDate / checkOutDate / roomNum / guest_names / contactName / contactMobile`，多个入住人姓名在 `guest_names` 中用英文逗号分隔。
+
+电影下单参数：`showId / buy_seats / phoneNo`。其中 `buy_seats` 必须是**座位对象 JSON 数组字符串**，例如 `[{"seatId":"seat_xxx"}]`，不要直接传 PHP 数组，以确保座位数据参与签名。

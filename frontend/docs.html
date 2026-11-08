@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>API 文档-卡世界开放平台</title>
 <meta name="keywords" content="卡世界开放平台API,卡券API文档,卡券下单接口,订单查询接口" />
-<meta name="description" content="卡世界开放平台接口文档：货源查询（公开）、签名鉴权、下单、订单查询、余额查询的完整参数与示例。" />
+<meta name="description" content="卡世界开放平台卡券接口文档：分类列表、商品列表、商品详情、下单、订单状态/详情查询等 10 个接口的完整参数与示例。" />
 <link rel="icon" href="../assets/logo-icon.png" />
-<link rel="stylesheet" href="open-common.css" />
+<link rel="stylesheet" href="open-common.css?v=20261105b" />
 <style>
   .docs-body { width: 1200px; margin: 32px auto 0; display: flex; align-items: flex-start; gap: 28px; }
   /* 左侧目录 */
@@ -38,6 +38,25 @@
   .doc-pre { background: #1d2129; color: #d4e0ff; border-radius: 10px; padding: 18px 20px; font-family: Menlo, Monaco, Consolas, monospace; font-size: 12.5px; line-height: 21px; overflow-x: auto; margin: 12px 0; white-space: pre; }
   .doc-tip { background: #eaf1ff; border-left: 3px solid #165dff; border-radius: 0 8px 8px 0; padding: 12px 16px; font-size: 13px; color: #3d3d3d; line-height: 24px; margin: 14px 0; }
   .doc-warn { background: #fff7f0; border-left: 3px solid #ff7d00; border-radius: 0 8px 8px 0; padding: 12px 16px; font-size: 13px; color: #3d3d3d; line-height: 24px; margin: 14px 0; }
+  .quick-start-block { border-color: #cfdbff; background: linear-gradient(135deg, #f8faff, #fff); }
+  .quick-start-form { display: flex; gap: 12px; margin-top: 18px; }
+  .quick-start-form input { flex: 1; min-width: 0; height: 46px; border: 1px solid #d9e2f5; border-radius: 10px; padding: 0 14px; font-size: 14px; outline: none; background: #fff; }
+  .quick-start-form input:focus { border-color: #165dff; }
+  .quick-start-form button { flex: none; height: 46px; padding: 0 22px; border: 0; border-radius: 10px; background: #165dff; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .quick-start-form button[disabled] { opacity: .6; cursor: not-allowed; }
+  .quick-start-result { margin-top: 18px; padding: 18px; border: 1px solid #c9d8ff; border-radius: 12px; background: #fff; }
+  .quick-start-result[hidden] { display: none; }
+  .quick-key-row { display: grid; grid-template-columns: 92px 1fr auto; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #eef1f6; }
+  .quick-key-row code { color: #165dff; font-size: 13px; word-break: break-all; }
+  .quick-copy { border: 1px solid #165dff; border-radius: 6px; background: #fff; color: #165dff; padding: 4px 10px; cursor: pointer; }
+  .quick-start-actions { margin-top: 16px; }
+  .quick-start-actions a { display: inline-block; border-radius: 8px; background: #165dff; color: #fff; padding: 9px 18px; font-size: 13px; }
+  @media (max-width: 600px) {
+    .quick-start-form { flex-direction: column; }
+    .quick-start-form button { width: 100%; }
+    .quick-key-row { grid-template-columns: 1fr auto; }
+    .quick-key-row > span:first-child { grid-column: 1 / -1; }
+  }
 
   @media (max-width: 1240px) {
     .docs-body { width: 92%; }
@@ -68,10 +87,16 @@
   <!-- 左侧目录 -->
   <aside class="docs-side" id="docs-side">
     <div class="side-group">开放平台接入</div>
-    <a href="#open-guide" class="active">接入指引（签名鉴权）</a>
-    <a href="#open-goods">货源接口</a>
-    <a href="#open-order">下单接口</a>
+    <a href="#quick-start" class="active">手机号快速接入</a>
+    <a href="#open-guide">接入指引（密钥鉴权）</a>
     <a href="#open-balance">余额查询</a>
+    <div class="side-group">会员 API</div>
+    <a href="#open-goods">会员货源接口</a>
+    <a href="#open-order">会员下单接口</a>
+    <div class="side-group">酒店预订 API</div>
+    <a href="#open-hotel">酒店预订接口</a>
+    <div class="side-group">电影票 API</div>
+    <a href="#open-movie">电影票接口</a>
   </aside>
 
   <!-- 右侧内容 -->
@@ -79,10 +104,28 @@
 
     <!-- ========== 开放平台接入 ========== -->
 
+    <!-- 未登录用户：手机号自动注册并生成首组密钥 -->
+    <section class="doc-block quick-start-block" id="quick-start">
+      <h2>手机号快速接入 <span style="font-size:13px;color:#165dff;border:1px solid #165dff;border-radius:4px;padding:1px 6px;vertical-align:middle;">自动注册并生成密钥</span></h2>
+      <p>填写新手机号，系统自动注册开放平台账号并生成首组 <code>app_key / app_secret</code>。新账号初始余额为 0，查询接口可直接使用，下单前请先充值。</p>
+      <form class="quick-start-form" id="quick-start-form" autocomplete="off">
+        <input type="tel" id="quick-mobile" maxlength="11" inputmode="numeric" placeholder="请输入 11 位手机号" aria-label="手机号" />
+        <button type="submit" id="quick-submit">注册并生成密钥</button>
+      </form>
+      <div class="quick-start-result" id="quick-start-result" hidden>
+        <h3 style="margin-top:0;color:#00b42a;">注册成功，密钥已生成</h3>
+        <div class="quick-key-row"><span>AppKey</span><code id="quick-app-key"></code><button type="button" class="quick-copy" data-copy-target="quick-app-key">复制</button></div>
+        <div class="quick-key-row" style="border-bottom:0;"><span>AppSecret</span><code id="quick-app-secret"></code><button type="button" class="quick-copy" data-copy-target="quick-app-secret">复制</button></div>
+        <div class="doc-tip">请妥善保存密钥。你已自动登录，可进入控制台充值、管理密钥和查看调用记录。</div>
+        <div class="quick-start-actions"><a href="console.html">进入控制台</a></div>
+      </div>
+      <div class="doc-tip">该手机号已注册过开放平台账号？请直接 <a href="login.html" style="color:#165dff;">登录</a>，在控制台创建或查看密钥。</div>
+    </section>
+
     <!-- 接入指引 -->
     <section class="doc-block" id="open-guide">
-      <h2>开放平台接入指引（签名鉴权）</h2>
-      <p>面向 B 端代理商的对外开放业务 API（v1 组）：货源查询、商品详情、余额查询、创建订单（余额扣款）、订单查询。<b>货源查询类接口公开可调用，无需签名（同 IP 限 60 次/分钟）；交易类接口（下单、订单查询、余额查询）需注册创建密钥后签名调用</b>，使用控制台创建的密钥对（app_key / app_secret）。</p>
+      <h2>开放平台接入指引（密钥鉴权）</h2>
+      <p>面向 B 端代理商的对外开放业务 API（v1 组）：会员、酒店、电影票货源查询，以及余额查询、创建订单（余额扣款）、订单查询。<b>会员、酒店、电影票的只读查询接口均公开可调用，无需密钥（同 IP 限 60 次/分钟）；交易类接口（下单、订单查询、余额查询）需注册创建密钥后调用</b>，使用控制台创建的密钥对（app_key / app_secret）。</p>
 
       <h3>第一步：创建密钥</h3>
       <p>注册开放平台账号后，进入 <a href="console.html" style="color:#165dff;">控制台</a> →「API密钥」→ 创建密钥，得到 <code>app_key</code>（ak_ 开头）和 <code>app_secret</code>（sk_ 开头，仅创建时完整展示一次，请立即保存）。</p>
@@ -95,16 +138,16 @@
         <tr><th>参数名</th><th>类型</th><th>必填</th><th>描述</th></tr>
         <tr><td>app_key</td><td>string</td><td>是</td><td>控制台创建的 AppKey</td></tr>
         <tr><td>timestamp</td><td>number</td><td>是</td><td>秒级 Unix 时间戳，与服务器时间差超过 10 分钟将被拒绝</td></tr>
-        <tr><td>sign</td><td>string</td><td>是</td><td>签名串，算法见下</td></tr>
+        <tr><td>sign</td><td>string</td><td>是</td><td>密钥校验串，计算规则见下</td></tr>
       </table>
 
-      <h3>签名算法</h3>
+      <h3>密钥计算规则</h3>
       <p>1. 取除 <code>sign</code> 外的所有请求参数（含 app_key、timestamp 及业务参数），<b>空值参数跳过不参与</b>；<br />
       2. 按参数名<b>升序</b>排序，拼接为 <code>k1=v1&amp;k2=v2</code> 形式；<br />
       3. 末尾追加 <code>&amp;secret=app_secret</code>；<br />
       4. 对整串做 <b>MD5</b>（32 位小写）即为 sign。</p>
       <div class="doc-pre">// 示例：假设业务参数 goods_id=4251
-// 待签名串：
+// 密钥计算串：
 app_key=ak_demo123&amp;goods_id=4251&amp;timestamp=1792464645&amp;secret=sk_demoSecret
 
 sign = md5("app_key=ak_demo&amp;goods_id=4251&amp;timestamp=1792464645&amp;secret=sk_demoSecret")
@@ -119,15 +162,15 @@ sign = md5("app_key=ak_demo&amp;goods_id=4251&amp;timestamp=1792464645&amp;secre
   "message": "操作成功",
   "data": { "balance": 128800 }
 }</div>
-      <div class="doc-tip">签名错误、时间戳超窗、密钥被禁用都会返回非 0 code 及对应 message；请妥善保管 app_secret，不要放在前端页面或客户端代码中。</div>
+      <div class="doc-tip">密钥校验失败、时间戳超窗、密钥被禁用都会返回非 0 code 及对应 message；请妥善保管 app_secret，不要放在前端页面或客户端代码中。</div>
     </section>
 
     <!-- 货源接口 -->
     <section class="doc-block" id="open-goods">
-      <h2>货源接口 <span style="font-size:13px;color:#00b42a;border:1px solid #00b42a;border-radius:4px;padding:1px 6px;vertical-align:middle;">公开接口，无需签名</span></h2>
+      <h2>货源接口 <span style="font-size:13px;color:#00b42a;border:1px solid #00b42a;border-radius:4px;padding:1px 6px;vertical-align:middle;">公开接口，无需密钥</span></h2>
       <p>查询平台在售卡券货源，用于你自己的商城/系统选品展示。<b>注意：本组接口金额字段单位均为「分」</b>（如 cost_price=2877 表示 28.77 元）。</p>
 
-      <h3>1. 货源列表 <span style="font-size:12px;color:#00b42a;">（公开接口，无需签名，匿名 price_rate=1）</span></h3>
+      <h3>1. 货源列表 <span style="font-size:12px;color:#00b42a;">（公开接口，无需密钥，匿名 price_rate=1）</span></h3>
       <div class="api-line"><span class="method method-get">GET</span><span class="api-url">https://your-domain.com/open-api/v1/goods</span></div>
       <table class="doc-table">
         <tr><th>参数名</th><th>示例值</th><th>类型</th><th>必填</th><th>描述</th></tr>
@@ -147,7 +190,7 @@ sign = md5("app_key=ak_demo&amp;goods_id=4251&amp;timestamp=1792464645&amp;secre
       {
         "goods_id": 4251,
         "goods_name": "爱奇艺星钻会员月卡",
-        "goods_img": "https://your-cdn-domain.com/images/poster/xxx.png",
+        "goods_img": "https://cdn.ksjhaoka.com/images/poster/xxx.png",
         "face_value": 6000,
         "cost_price": 2877,
         "sell_price": 6000,
@@ -158,7 +201,7 @@ sign = md5("app_key=ak_demo&amp;goods_id=4251&amp;timestamp=1792464645&amp;secre
   }
 }</div>
 
-      <h3>2. 商品详情 <span style="font-size:12px;color:#00b42a;">（公开接口，无需签名，匿名 price_rate=1）</span></h3>
+      <h3>2. 商品详情 <span style="font-size:12px;color:#00b42a;">（公开接口，无需密钥，匿名 price_rate=1）</span></h3>
       <div class="api-line"><span class="method method-get">GET</span><span class="api-url">https://your-domain.com/open-api/v1/goods/detail</span></div>
       <table class="doc-table">
         <tr><th>参数名</th><th>示例值</th><th>类型</th><th>必填</th><th>描述</th></tr>
@@ -173,7 +216,7 @@ sign = md5("app_key=ak_demo&amp;goods_id=4251&amp;timestamp=1792464645&amp;secre
   "data": {
     "goods_id": 4251,
     "goods_name": "爱奇艺星钻会员月卡",
-    "goods_img": "https://your-cdn-domain.com/images/poster/xxx.png",
+    "goods_img": "https://cdn.ksjhaoka.com/images/poster/xxx.png",
     "face_value": 6000,
     "cost_price": 2877,
     "sell_price": 6000,
@@ -196,7 +239,7 @@ sign = md5("app_key=ak_demo&amp;goods_id=4251&amp;timestamp=1792464645&amp;secre
 
     <!-- 下单接口 -->
     <section class="doc-block" id="open-order">
-      <h2>下单接口 <span style="font-size:13px;color:#f53f3f;border:1px solid #f53f3f;border-radius:4px;padding:1px 6px;vertical-align:middle;">需签名</span></h2>
+      <h2>下单接口 <span style="font-size:13px;color:#f53f3f;border:1px solid #f53f3f;border-radius:4px;padding:1px 6px;vertical-align:middle;">需密钥</span></h2>
       <p>创建订单即按商品成本价（cost_price）从你的账户余额扣款，<b>账户没有余额将无法调用下单接口</b>；余额不足时返回错误提示「余额不足，请充值」。</p>
 
       <h3>1. 创建订单</h3>
@@ -229,7 +272,7 @@ sign = md5("app_key=ak_demo&amp;goods_id=4251&amp;timestamp=1792464645&amp;secre
   "data": null
 }</div>
 
-      <h3>2. 订单查询 <span style="font-size:12px;color:#f53f3f;">（需签名）</span></h3>
+      <h3>2. 订单查询 <span style="font-size:12px;color:#f53f3f;">（需密钥）</span></h3>
       <div class="api-line"><span class="method method-post">POST</span><span class="api-url">https://your-domain.com/open-api/v1/order/query</span></div>
       <table class="doc-table">
         <tr><th>参数名</th><th>示例值</th><th>类型</th><th>必填</th><th>描述</th></tr>
@@ -259,7 +302,7 @@ sign = md5("app_key=ak_demo&amp;goods_id=4251&amp;timestamp=1792464645&amp;secre
 
     <!-- 余额查询 -->
     <section class="doc-block" id="open-balance">
-      <h2>余额查询 <span style="font-size:13px;color:#f53f3f;border:1px solid #f53f3f;border-radius:4px;padding:1px 6px;vertical-align:middle;">需签名</span></h2>
+      <h2>余额查询 <span style="font-size:13px;color:#f53f3f;border:1px solid #f53f3f;border-radius:4px;padding:1px 6px;vertical-align:middle;">需密钥</span></h2>
       <p>查询当前账户可用余额，<b>单位为「分」</b>（如 balance=128800 表示 1288.00 元）。</p>
       <div class="api-line"><span class="method method-get">GET</span><span class="api-url">https://your-domain.com/open-api/v1/balance</span></div>
       <p>请求参数：仅鉴权参数（app_key / timestamp / sign）。</p>
@@ -274,22 +317,159 @@ sign = md5("app_key=ak_demo&amp;goods_id=4251&amp;timestamp=1792464645&amp;secre
       <div class="doc-warn">下单接口按成本价实时扣减余额，请保持账户余额充足；余额不足时下单接口将返回「余额不足，请充值」。</div>
     </section>
 
-    <!-- 全局说明 -->
+    <!-- 酒店预订 API -->
+    <section class="doc-block" id="open-hotel">
+      <h2>酒店预订 API <span style="font-size:13px;color:#00b42a;border:1px solid #00b42a;border-radius:4px;padding:1px 6px;vertical-align:middle;">查询无需密钥</span></h2>
+      <p>供代理商把酒店搜索、报价和预订接入自己的系统。<b>酒店搜索、详情、房型报价和可订检查无需密钥</b>；创建订单、查询订单需密钥。预订不接受 C 端支付宝付款：请先在控制台充值，创建订单时平台从代理余额扣除成本，履约失败自动退回。所有金额字段单位均为「分」。</p>
+      <h3>1. 查询接口 <span style="font-size:12px;color:#00b42a;">（公开接口，无需密钥）</span></h3>
+      <table class="doc-table">
+        <tr><th>接口</th><th>方法</th><th>路径（统一前缀 https://www.kashijie.com/open-api/v1）</th></tr>
+        <tr><td>酒店搜索</td><td>GET</td><td>/hotel/search</td></tr>
+        <tr><td>酒店详情</td><td>GET</td><td>/hotel/detail</td></tr>
+        <tr><td>房型与实时报价</td><td>GET</td><td>/hotel/rooms</td></tr>
+        <tr><td>可订检查</td><td>POST</td><td>/hotel/validate</td></tr>
+      </table>
+      <table class="doc-table">
+        <tr><th>业务参数</th><th>适用接口</th><th>必填</th><th>说明</th></tr>
+        <tr><td>cityName</td><td>search</td><td>是</td><td>城市名，如「北京」</td></tr>
+        <tr><td>checkInDate / checkOutDate</td><td>search / detail / rooms / validate</td><td>是</td><td>入住 / 离店日期，YYYY-MM-DD</td></tr>
+        <tr><td>pageIndex / pageSize</td><td>search</td><td>否</td><td>页码与每页数量</td></tr>
+        <tr><td>queryText</td><td>search</td><td>否</td><td>酒店名、商圈等关键词</td></tr>
+        <tr><td>hotelID</td><td>detail / rooms / validate</td><td>是</td><td>搜索接口返回的酒店 ID</td></tr>
+        <tr><td>ratePlanID / roomNum</td><td>validate</td><td>是</td><td>报价产品 ID 与间数</td></tr>
+      </table>
+      <h3>酒店搜索 curl 示例（无需密钥）</h3>
+      <div class="doc-pre">curl "https://www.kashijie.com/open-api/v1/hotel/search?cityName=%E5%8C%97%E4%BA%AC&amp;checkInDate=2026-11-10&amp;checkOutDate=2026-11-11&amp;pageIndex=1&amp;pageSize=15"</div>
+      <h3>2. 创建酒店订单 <span style="font-size:12px;color:#f53f3f;">（需密钥）</span></h3>
+      <div class="api-line"><span class="method method-post">POST</span><span class="api-url">https://www.kashijie.com/open-api/v1/hotel/order/create</span></div>
+      <p>请求体使用 JSON。平台先实时询价并创建未支付订单，再扣代理余额并提交酒店履约。</p>
+      <table class="doc-table">
+        <tr><th>参数名</th><th>必填</th><th>说明</th></tr>
+        <tr><td>hotelID / ratePlanID</td><td>是</td><td>酒店 ID / 房型报价产品 ID</td></tr>
+        <tr><td>checkInDate / checkOutDate</td><td>是</td><td>入住 / 离店日期</td></tr>
+        <tr><td>roomNum</td><td>是</td><td>间数，1-9</td></tr>
+        <tr><td>guest_names</td><td>是</td><td>入住人姓名，多个用英文逗号分隔</td></tr>
+        <tr><td>contactName / contactMobile</td><td>是</td><td>联系人姓名 / 11 位手机号</td></tr>
+        <tr><td>arriveHour / remark</td><td>否</td><td>预计到店小时 / 订单备注</td></tr>
+        <tr><td>attach</td><td>否</td><td>代理自定义附加信息</td></tr>
+      </table>
+      <div class="doc-pre">curl -X POST "https://www.kashijie.com/open-api/v1/hotel/order/create"   -H "Content-Type: application/json"   -d '{"app_key":"ak_demo123","timestamp":1792464645,"sign":"xxxxxxxx","hotelID":"123456","ratePlanID":"rate_xxx","checkInDate":"2026-11-10","checkOutDate":"2026-11-11","roomNum":1,"guest_names":"张三","contactName":"张三","contactMobile":"13800138000"}'</div>
+      <h3>3. 查询酒店订单 <span style="font-size:12px;color:#f53f3f;">（需密钥）</span></h3>
+      <div class="api-line"><span class="method method-post">POST</span><span class="api-url">https://www.kashijie.com/open-api/v1/hotel/order/query</span></div>
+      <p>传 <code>order_no</code> 与鉴权参数。返回 <code>supplier_data</code> 内含酒店确认状态、失败原因等。建议处理中每 10-30 秒轮询。</p>
+    </section>
 
+    <!-- 电影票 API -->
+    <section class="doc-block" id="open-movie">
+      <h2>电影票 API <span style="font-size:13px;color:#00b42a;border:1px solid #00b42a;border-radius:4px;padding:1px 6px;vertical-align:middle;">查询无需密钥</span></h2>
+      <p>支持在线选座与自动出票。<b>城市、影片、影院、场次、放映日期、详情和座位图查询无需密钥</b>；创建订单、查询订单需密钥。创建订单时先锁座取得实际成本，再扣代理余额并出票；出票失败自动退回余额。所有金额字段单位均为「分」。</p>
+      <h3>1. 查询接口 <span style="font-size:12px;color:#00b42a;">（均为 POST，公开接口，无需密钥）</span></h3>
+      <table class="doc-table">
+        <tr><th>业务</th><th>路径（统一前缀 https://www.kashijie.com/open-api/v1）</th></tr>
+        <tr><td>城市</td><td>/movie/city</td></tr>
+        <tr><td>热映 / 待映影片</td><td>/movie/films　/movie/wait-list</td></tr>
+        <tr><td>行政区 / 影院品牌</td><td>/movie/region　/movie/brand</td></tr>
+        <tr><td>影院列表</td><td>/movie/cinemas</td></tr>
+        <tr><td>场次 / 放映日期</td><td>/movie/schedule　/movie/showdate</td></tr>
+        <tr><td>影片 / 影院详情</td><td>/movie/film-info　/movie/cinema-info</td></tr>
+        <tr><td>场次详情 / 座位图</td><td>/movie/show　/movie/seats</td></tr>
+      </table>
+      <p>业务参数沿用上一级查询返回的 ID，如 <code>cityId</code>、<code>filmId</code>、<code>cinemaId</code>、<code>showId</code>。请求体使用 JSON，无需附带 app_key / timestamp / sign。</p>
+      <h3>电影城市查询 curl 示例（无需密钥）</h3>
+      <div class="doc-pre">curl -X POST "https://www.kashijie.com/open-api/v1/movie/city" \
+  -H "Content-Type: application/json" \
+  -d '{}'</div>
+      <h3>2. 创建电影票订单 <span style="font-size:12px;color:#f53f3f;">（需密钥）</span></h3>
+      <div class="api-line"><span class="method method-post">POST</span><span class="api-url">https://www.kashijie.com/open-api/v1/movie/order/create</span></div>
+      <table class="doc-table">
+        <tr><th>参数名</th><th>必填</th><th>说明</th></tr>
+        <tr><td>showId</td><td>是</td><td>场次 ID</td></tr>
+        <tr><td>buy_seats</td><td>是</td><td>座位对象 JSON 数组字符串，如 [{"seatId":"xxx"}]，1-5 个座位</td></tr>
+        <tr><td>phoneNo</td><td>是</td><td>11 位订票手机号</td></tr>
+        <tr><td>attach</td><td>否</td><td>代理自定义附加信息</td></tr>
+      </table>
+      <div class="doc-pre">curl -X POST "https://www.kashijie.com/open-api/v1/movie/order/create"   -H "Content-Type: application/json"   -d '{"app_key":"ak_demo123","timestamp":1792464645,"sign":"xxxxxxxx","showId":"show_xxx","buy_seats":"[{"seatId":"seat_xxx"}]","phoneNo":"13800138000"}'</div>
+      <h3>3. 查询电影票订单 <span style="font-size:12px;color:#f53f3f;">（需密钥）</span></h3>
+      <div class="api-line"><span class="method method-post">POST</span><span class="api-url">https://www.kashijie.com/open-api/v1/movie/order/query</span></div>
+      <p>传 <code>order_no</code> 与鉴权参数。出票成功后，取票序列号和验证码位于 <code>supplier_data.tickets</code>。</p>
+      <h3>订单统一状态</h3>
+      <table class="doc-table">
+        <tr><th>status</th><th>说明</th></tr>
+        <tr><td>recharging</td><td>已扣款，酒店确认中 / 电影出票中</td></tr>
+        <tr><td>success</td><td>预订成功 / 已出票</td></tr>
+        <tr><td>refunded</td><td>履约失败，代理余额已退回</td></tr>
+      </table>
+    </section>
+
+    <!-- 全局说明 -->
   </main>
 </div>
 
 <div id="op-footer-mount"></div>
 
-<script src="open-common.js"></script>
+<script src="open-common.js?v=20261105b"></script>
 <script>
   OP.renderHeader('docs');
   OP.renderFooter();
+
+  // 已登录用户不显示快速注册，直接进入控制台管理账号和密钥
+  if (OP.getToken()) {
+    var quickBlock = document.getElementById('quick-start');
+    var quickNav = document.querySelector('#docs-side a[href="#quick-start"]');
+    if (quickBlock) quickBlock.parentNode.removeChild(quickBlock);
+    if (quickNav) quickNav.parentNode.removeChild(quickNav);
+    var firstNav = document.querySelector('#docs-side a');
+    if (firstNav && !document.querySelector('#docs-side a.active')) firstNav.classList.add('active');
+  }
+
+  var quickForm = document.getElementById('quick-start-form');
+  if (quickForm) {
+    quickForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var mobile = document.getElementById('quick-mobile').value.trim();
+      if (!/^1\d{10}$/.test(mobile)) {
+        OP.toast('请输入正确的 11 位手机号');
+        return;
+      }
+      var btn = document.getElementById('quick-submit');
+      btn.disabled = true;
+      btn.textContent = '正在生成...';
+      OP.openApi('/quick-start', { method: 'POST', data: { mobile: mobile } })
+        .then(function (d) {
+          OP.setToken(d.token);
+          document.getElementById('quick-app-key').textContent = d.app_key || '--';
+          document.getElementById('quick-app-secret').textContent = d.app_secret || '--';
+          quickForm.style.display = 'none';
+          document.getElementById('quick-start-result').hidden = false;
+          document.getElementById('op-header-actions').innerHTML = '<a class="op-btn-primary" href="console.html">进入控制台</a>';
+          OP.toast('注册成功，密钥已生成');
+        })
+        .catch(function (err) {
+          OP.toast(err.message || '创建失败，请稍后再试');
+          btn.disabled = false;
+          btn.textContent = '注册并生成密钥';
+        });
+    });
+    document.getElementById('quick-start-result').addEventListener('click', function (e) {
+      var btn = e.target.closest('button[data-copy-target]');
+      if (!btn) return;
+      var target = document.getElementById(btn.getAttribute('data-copy-target'));
+      OP.copyText(target.textContent, '已复制，请妥善保存');
+    });
+  }
 
   // 左侧目录点击 + 滚动高亮
   var links = Array.prototype.slice.call(document.querySelectorAll('#docs-side a'));
   var blocks = links.map(function (a) {
     return document.querySelector(a.getAttribute('href'));
+  });
+  // 目录按业务分组后，滚动高亮仍按正文实际位置计算
+  var scrollBlocks = blocks.map(function (b, i) {
+    return { block: b, index: i };
+  }).filter(function (item) {
+    return !!item.block;
+  }).sort(function (a, b) {
+    return a.block.offsetTop - b.block.offsetTop;
   });
   links.forEach(function (a) {
     a.addEventListener('click', function (e) {
@@ -309,7 +489,7 @@ sign = md5("app_key=ak_demo&amp;goods_id=4251&amp;timestamp=1792464645&amp;secre
       ticking = false;
       var y = window.scrollY + 120;
       var idx = 0;
-      blocks.forEach(function (b, i) { if (b && b.offsetTop <= y) idx = i; });
+      scrollBlocks.forEach(function (item) { if (item.block.offsetTop <= y) idx = item.index; });
       links.forEach(function (l, i) { l.classList.toggle('active', i === idx); });
     }, 80);
   });

@@ -110,6 +110,83 @@ class OpenPlatformController extends Controller
     }
 
     /**
+     * POST /api/open/platform/quick-start 新手机号快速接入（公开）
+     * 自动注册、生成首组密钥并签发 7 天 token；已注册手机号必须登录后自行创建密钥。
+     */
+    public function quickStart(Request $request)
+    {
+        $mobile = trim((string)$request->input('mobile', ''));
+        if (!preg_match('/^1\d{10}$/', $mobile)) {
+            return resp(ERROR_PARAMS, null, '手机号格式不正确');
+        }
+
+        $rateKey = 'open_quick_start_' . md5((string)$request->ip()) . '_' . (int)floor(time() / 3600);
+        Cache::add($rateKey, 0, 3700);
+        $count = Cache::increment($rateKey);
+        if ($count === false || $count > 3) {
+            return resp(ERROR_PARAMS, null, '操作过于频繁，请稍后再试');
+        }
+
+        $lockKey = 'open_quick_start_mobile_' . $mobile;
+        if (!Cache::add($lockKey, 1, 15)) {
+            return resp(ERROR_PARAMS, null, '正在创建账号，请稍候');
+        }
+
+        try {
+            DB::beginTransaction();
+            $exists = DB::table('open_user')->where('mobile', $mobile)->where('delete_time', 0)->exists();
+            if ($exists) {
+                DB::rollBack();
+                return resp(ERROR_PARAMS, null, '该手机号已注册，请登录后在控制台创建密钥');
+            }
+
+            $now = time();
+            $uid = DB::table('open_user')->insertGetId([
+                'mobile' => $mobile,
+                'password' => password_hash(bin2hex(random_bytes(16)), PASSWORD_BCRYPT),
+                'name' => 'API用户' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 6)),
+                'avatar' => '',
+                'balance' => 0.00,
+                'invite_code' => $this->genInviteCode(),
+                'from_invite_code' => '',
+                'status' => 1,
+                'created_time' => $now,
+                'update_time' => $now,
+                'delete_time' => 0,
+            ]);
+
+            $appKey = 'ak_' . $this->randomStr(21);
+            $appSecret = 'sk_' . $this->randomStr(29);
+            DB::table('open_api_key')->insert([
+                'user_id' => $uid,
+                'app_key' => $appKey,
+                'app_secret' => $appSecret,
+                'status' => 1,
+                'remark' => '文档页快速接入',
+                'price_rate' => '1.00',
+                'last_used_time' => 0,
+                'created_time' => $now,
+                'update_time' => $now,
+            ]);
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return resp(ERROR_UN_KNOW, null, '创建失败，请稍后再试');
+        } finally {
+            Cache::forget($lockKey);
+        }
+
+        $token = $this->issueToken($uid);
+        return resp(SUCCESS, [
+            'token' => $token,
+            'mobile' => $mobile,
+            'app_key' => $appKey,
+            'app_secret' => $appSecret,
+            'balance' => 0,
+        ]);
+    }
+
+    /**
      * POST /api/open/platform/login 登录
      * 入：{mobile, password}
      */
