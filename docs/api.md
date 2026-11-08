@@ -1,6 +1,6 @@
 # API 文档
 
-文档版本：`v2026.11.08`
+文档版本：`v2026.11.08.2`
 
 开放平台接口分两组：
 
@@ -95,13 +95,13 @@
 | 接口 | 说明 |
 |---|---|
 | `POST /sms` | 注册验证码 `{mobile}`（真实短信，60s 限频） |
-| `POST /quick-start` | 新手机号 `{mobile}` → 自动注册、生成首组密钥并返回 `{token, mobile, app_key, app_secret, balance}`；公开接口，同 IP 每小时 3 次 |
+| `POST /quick-start` | 快速获取密钥：开发者或 AI 提交用户本人未注册手机号 `{mobile}` → 自动注册、生成首组密钥并返回 `{token, mobile, app_key, app_secret, balance}`；公开接口，同 IP 每小时 3 次 |
 | `POST /register` | `{mobile, code, password, name?, invite_code?}` → `{token, user}` |
 | `POST /login` | 账号密码登录 → `{token, user}` |
 | `POST /sms-login-code` | 登录验证码（未注册手机号也发） |
 | `POST /login-sms` | 验证码登录，未注册自动注册 → `{token, is_new, user}` |
 
-`quick-start` 仅接受未注册手机号；已注册手机号必须登录后在控制台创建密钥，不会通过公开接口读取或追加他人账号的密钥。新账号初始余额为 0。
+`quick-start` 仅接受用户本人未注册手机号，由开发者或 AI 在程序中调用，文档页无需提供手机号输入框。已注册手机号必须登录后在控制台创建密钥，不会通过公开接口读取或追加他人账号的密钥。新账号初始余额为 0。
 
 token 有效期 7 天，后续请求 Header 带 `token: xxx`。
 

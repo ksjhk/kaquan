@@ -110,7 +110,7 @@ class OpenPlatformController extends Controller
     }
 
     /**
-     * POST /api/open/platform/quick-start 新手机号快速接入（公开）
+     * POST /api/open/platform/quick-start 快速获取密钥（公开）
      * 自动注册、生成首组密钥并签发 7 天 token；已注册手机号必须登录后自行创建密钥。
      */
     public function quickStart(Request $request)
@@ -162,7 +162,7 @@ class OpenPlatformController extends Controller
                 'app_key' => $appKey,
                 'app_secret' => $appSecret,
                 'status' => 1,
-                'remark' => '文档页快速接入',
+                'remark' => '快速获取密钥',
                 'price_rate' => '1.00',
                 'last_used_time' => 0,
                 'created_time' => $now,

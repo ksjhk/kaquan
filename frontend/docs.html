@@ -87,7 +87,7 @@
   <!-- 左侧目录 -->
   <aside class="docs-side" id="docs-side">
     <div class="side-group">开放平台接入</div>
-    <a href="#quick-start" class="active">手机号快速接入</a>
+    <a href="#quick-start" class="active">快速获取密钥</a>
     <a href="#open-guide">接入指引（密钥鉴权）</a>
     <a href="#open-balance">余额查询</a>
     <div class="side-group">会员 API</div>
@@ -106,20 +106,35 @@
 
     <!-- 未登录用户：手机号自动注册并生成首组密钥 -->
     <section class="doc-block quick-start-block" id="quick-start">
-      <h2>手机号快速接入 <span style="font-size:13px;color:#165dff;border:1px solid #165dff;border-radius:4px;padding:1px 6px;vertical-align:middle;">自动注册并生成密钥</span></h2>
-      <p>填写新手机号，系统自动注册开放平台账号并生成首组 <code>app_key / app_secret</code>。新账号初始余额为 0，查询接口可直接使用，下单前请先充值。</p>
-      <form class="quick-start-form" id="quick-start-form" autocomplete="off">
-        <input type="tel" id="quick-mobile" maxlength="11" inputmode="numeric" placeholder="请输入 11 位手机号" aria-label="手机号" />
-        <button type="submit" id="quick-submit">注册并生成密钥</button>
-      </form>
-      <div class="quick-start-result" id="quick-start-result" hidden>
-        <h3 style="margin-top:0;color:#00b42a;">注册成功，密钥已生成</h3>
-        <div class="quick-key-row"><span>AppKey</span><code id="quick-app-key"></code><button type="button" class="quick-copy" data-copy-target="quick-app-key">复制</button></div>
-        <div class="quick-key-row" style="border-bottom:0;"><span>AppSecret</span><code id="quick-app-secret"></code><button type="button" class="quick-copy" data-copy-target="quick-app-secret">复制</button></div>
-        <div class="doc-tip">请妥善保存密钥。你已自动登录，可进入控制台充值、管理密钥和查看调用记录。</div>
-        <div class="quick-start-actions"><a href="console.html">进入控制台</a></div>
-      </div>
-      <div class="doc-tip">该手机号已注册过开放平台账号？请直接 <a href="login.html" style="color:#165dff;">登录</a>，在控制台创建或查看密钥。</div>
+      <h2>快速获取密钥 <span style="font-size:13px;color:#165dff;border:1px solid #165dff;border-radius:4px;padding:1px 6px;vertical-align:middle;">开发者和 AI 可直接调用</span></h2>
+      <p>需要密钥时，让用户提供本人未注册过的 11 位手机号，再由你的程序或 AI 调用以下接口。系统会自动注册账号、生成首组 <code>app_key / app_secret</code> 并返回 7 天 <code>token</code>。无需在文档页输入手机号。</p>
+
+      <h3>请求接口</h3>
+      <div class="api-line"><span class="method method-post">POST</span><span class="api-url">https://your-domain.com/open-api/platform/quick-start</span></div>
+      <p>Content-Type：<code>application/json</code>。此接口无需 <code>app_key / timestamp / sign</code>。</p>
+
+      <h3>请求参数</h3>
+      <table class="doc-table">
+        <tr><th>参数名</th><th>类型</th><th>必填</th><th>描述</th></tr>
+        <tr><td>mobile</td><td>string</td><td>是</td><td>用户本人未注册过的 11 位手机号</td></tr>
+      </table>
+
+      <h3>curl 调用示例</h3>
+      <div class="doc-pre">curl -X POST "https://your-domain.com/open-api/platform/quick-start"   -H "Content-Type: application/json"   -d '{"mobile":"用户本人11位手机号"}'</div>
+
+      <h3>成功返回示例</h3>
+      <div class="doc-pre">{
+  "code": 0,
+  "message": "操作成功",
+  "data": {
+    "token": "登录token示例",
+    "mobile": "用户手机号",
+    "app_key": "ak_示例密钥",
+    "app_secret": "sk_示例密钥",
+    "balance": 0
+  }
+}</div>
+      <div class="doc-tip">新账号初始余额为 0，查询接口可直接使用，下单前请先充值。同 IP 每小时最多调用 3 次；手机号已注册时，请登录控制台创建或查看密钥，公开接口不会读取或追加他人账号的密钥。</div>
     </section>
 
     <!-- 接入指引 -->
@@ -411,52 +426,6 @@ sign = md5("app_key=ak_demo&amp;goods_id=4251&amp;timestamp=1792464645&amp;secre
 <script>
   OP.renderHeader('docs');
   OP.renderFooter();
-
-  // 已登录用户不显示快速注册，直接进入控制台管理账号和密钥
-  if (OP.getToken()) {
-    var quickBlock = document.getElementById('quick-start');
-    var quickNav = document.querySelector('#docs-side a[href="#quick-start"]');
-    if (quickBlock) quickBlock.parentNode.removeChild(quickBlock);
-    if (quickNav) quickNav.parentNode.removeChild(quickNav);
-    var firstNav = document.querySelector('#docs-side a');
-    if (firstNav && !document.querySelector('#docs-side a.active')) firstNav.classList.add('active');
-  }
-
-  var quickForm = document.getElementById('quick-start-form');
-  if (quickForm) {
-    quickForm.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var mobile = document.getElementById('quick-mobile').value.trim();
-      if (!/^1\d{10}$/.test(mobile)) {
-        OP.toast('请输入正确的 11 位手机号');
-        return;
-      }
-      var btn = document.getElementById('quick-submit');
-      btn.disabled = true;
-      btn.textContent = '正在生成...';
-      OP.openApi('/quick-start', { method: 'POST', data: { mobile: mobile } })
-        .then(function (d) {
-          OP.setToken(d.token);
-          document.getElementById('quick-app-key').textContent = d.app_key || '--';
-          document.getElementById('quick-app-secret').textContent = d.app_secret || '--';
-          quickForm.style.display = 'none';
-          document.getElementById('quick-start-result').hidden = false;
-          document.getElementById('op-header-actions').innerHTML = '<a class="op-btn-primary" href="console.html">进入控制台</a>';
-          OP.toast('注册成功，密钥已生成');
-        })
-        .catch(function (err) {
-          OP.toast(err.message || '创建失败，请稍后再试');
-          btn.disabled = false;
-          btn.textContent = '注册并生成密钥';
-        });
-    });
-    document.getElementById('quick-start-result').addEventListener('click', function (e) {
-      var btn = e.target.closest('button[data-copy-target]');
-      if (!btn) return;
-      var target = document.getElementById(btn.getAttribute('data-copy-target'));
-      OP.copyText(target.textContent, '已复制，请妥善保存');
-    });
-  }
 
   // 左侧目录点击 + 滚动高亮
   var links = Array.prototype.slice.call(document.querySelectorAll('#docs-side a'));
