@@ -56,6 +56,27 @@ Route::prefix('open/v1')->group(function () {
     Route::get('goods', [\App\Http\Controllers\open\OpenApiV1Controller::class, 'goods']);
     Route::get('goods/detail', [\App\Http\Controllers\open\OpenApiV1Controller::class, 'goodsDetail']);
     Route::get('balance', [\App\Http\Controllers\open\OpenApiV1Controller::class, 'balance']);
-    Route::post('order/create', [\App\Http\Controllers\open\OpenApiV1Controller::class, 'orderCreate']);
+    Route::post('order/create', [\App\Http\Controllers\open\OpenApiV1Controller::class, 'orderCreate'])
+        ->middleware(\App\Http\Middleware\OpenOrderReplayMiddleware::class);
     Route::post('order/query', [\App\Http\Controllers\open\OpenApiV1Controller::class, 'orderQuery']);
+
+    // 酒店只读查询（匿名限频；携带 app_key 时完整验签）
+    Route::get('hotel/search', [\App\Http\Controllers\open\OpenSupplyV1Controller::class, 'hotelSearch']);
+    Route::get('hotel/detail', [\App\Http\Controllers\open\OpenSupplyV1Controller::class, 'hotelDetail']);
+    Route::get('hotel/rooms', [\App\Http\Controllers\open\OpenSupplyV1Controller::class, 'hotelRooms']);
+    Route::post('hotel/validate', [\App\Http\Controllers\open\OpenSupplyV1Controller::class, 'hotelValidate']);
+
+    // 电影票只读查询（匿名限频；携带 app_key 时完整验签）
+    Route::post('movie/city', [\App\Http\Controllers\open\OpenSupplyV1Controller::class, 'movieCity']);
+    Route::post('movie/films', [\App\Http\Controllers\open\OpenSupplyV1Controller::class, 'movieFilms']);
+    Route::post('movie/wait-list', [\App\Http\Controllers\open\OpenSupplyV1Controller::class, 'movieWaitList']);
+    Route::post('movie/region', [\App\Http\Controllers\open\OpenSupplyV1Controller::class, 'movieRegion']);
+    Route::post('movie/brand', [\App\Http\Controllers\open\OpenSupplyV1Controller::class, 'movieBrand']);
+    Route::post('movie/cinemas', [\App\Http\Controllers\open\OpenSupplyV1Controller::class, 'movieCinemas']);
+    Route::post('movie/schedule', [\App\Http\Controllers\open\OpenSupplyV1Controller::class, 'movieSchedule']);
+    Route::post('movie/showdate', [\App\Http\Controllers\open\OpenSupplyV1Controller::class, 'movieShowdate']);
+    Route::post('movie/film-info', [\App\Http\Controllers\open\OpenSupplyV1Controller::class, 'movieFilmInfo']);
+    Route::post('movie/cinema-info', [\App\Http\Controllers\open\OpenSupplyV1Controller::class, 'movieCinemaInfo']);
+    Route::post('movie/show', [\App\Http\Controllers\open\OpenSupplyV1Controller::class, 'movieShow']);
+    Route::post('movie/seats', [\App\Http\Controllers\open\OpenSupplyV1Controller::class, 'movieSeats']);
 });

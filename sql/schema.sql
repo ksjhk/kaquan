@@ -24,7 +24,7 @@ CREATE TABLE `ml_open_user` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_mobile` (`mobile`),
   UNIQUE KEY `uk_invite_code` (`invite_code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='开放平台用户';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='开放平台用户';
 CREATE TABLE `ml_open_api_key` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int unsigned NOT NULL DEFAULT '0',
@@ -39,7 +39,7 @@ CREATE TABLE `ml_open_api_key` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_app_key` (`app_key`),
   KEY `idx_user_id` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='开放平台API密钥';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='开放平台API密钥';
 CREATE TABLE `ml_open_order` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int unsigned NOT NULL DEFAULT '0',
@@ -57,7 +57,7 @@ CREATE TABLE `ml_open_order` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_order_no` (`order_no`),
   KEY `idx_user_time` (`user_id`,`created_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='开放平台订单';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='开放平台订单';
 CREATE TABLE `ml_open_balance_log` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int unsigned NOT NULL DEFAULT '0',
@@ -69,7 +69,7 @@ CREATE TABLE `ml_open_balance_log` (
   `created_time` int unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `idx_user_time` (`user_id`,`created_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='开放平台余额流水';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='开放平台余额流水';
 CREATE TABLE `ml_open_recharge` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int unsigned NOT NULL DEFAULT '0',
@@ -85,7 +85,7 @@ CREATE TABLE `ml_open_recharge` (
   UNIQUE KEY `uk_order_no` (`order_no`),
   KEY `idx_user_status` (`user_id`,`status`),
   KEY `idx_status_time` (`status`,`created_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='开放平台余额充值单';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='开放平台余额充值单';
 CREATE TABLE `ml_open_notice` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `title` varchar(100) NOT NULL DEFAULT '',
@@ -94,19 +94,21 @@ CREATE TABLE `ml_open_notice` (
   `created_time` int unsigned NOT NULL DEFAULT '0',
   `update_time` int unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='开放平台公告';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='开放平台公告';
 
 CREATE TABLE `ml_open_api_log` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int unsigned NOT NULL DEFAULT '0',
   `app_key` varchar(40) NOT NULL DEFAULT '',
   `api` varchar(255) NOT NULL DEFAULT '' COMMENT '接口路径',
+  `method` varchar(10) NOT NULL DEFAULT '' COMMENT '请求方法',
+  `params` text COMMENT '请求参数（敏感字段已过滤）',
   `ip` varchar(64) NOT NULL DEFAULT '',
   `status` tinyint NOT NULL DEFAULT '1',
   `created_time` int unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `idx_user_time` (`user_id`,`created_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='开放平台API调用日志';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='开放平台API调用日志';
 CREATE TABLE `ml_verify_captchas` (
   `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `type` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '类别 0下单验证码',

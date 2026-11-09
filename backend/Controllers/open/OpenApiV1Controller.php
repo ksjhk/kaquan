@@ -199,7 +199,8 @@ class OpenApiV1Controller extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            return resp(ERROR_UN_KNOW, null, '下单失败：' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('open order create failed', ['user_id' => (int)$user->id, 'exception' => $e->getMessage()]);
+            return resp(ERROR_UN_KNOW, null, '下单失败，请稍后重试');
         }
 
         // 调供货方创建订单直充发货
@@ -219,7 +220,7 @@ class OpenApiV1Controller extends Controller
                 'status' => self::ORDER_REFUNDED,
                 'cost_price' => $this->ratePrice($costFen, $rate), // 分，对外报价=供货价×倍数
                 'balance' => $this->balanceFen(DB::table('open_user')->where('id', $user->id)->value('balance')),
-            ], '供货方发货提交失败，已退款：' . $supplier['msg']);
+            ], '供货方发货提交失败，已退款，请稍后重试');
         }
 
         return resp(SUCCESS, [
@@ -350,7 +351,7 @@ class OpenApiV1Controller extends Controller
                 'api' => '/' . ltrim($request->path(), '/'),
                 'method' => $request->method(),
                 'ip' => (string)$request->ip(),
-                'params' => json_encode($request->except(['sign', 'app_secret']), JSON_UNESCAPED_UNICODE),
+                'params' => json_encode($request->except(['sign', 'app_secret', 'token', 'password']), JSON_UNESCAPED_UNICODE),
                 'status' => (int)$status,
                 'created_time' => time(),
             ]);

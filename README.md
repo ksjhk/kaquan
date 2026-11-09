@@ -75,7 +75,8 @@
 │   ├── open-common.css/js      # 公共样式与 API 封装（API_BASE 在此配置）
 │   └── assets/                 # logo 等静态资源
 └── backend/                    # Laravel 后端模块
-    ├── Controllers/open/       # 平台账号 / 对外 v1 / 充值管理 三个控制器
+    ├── Controllers/open/       # 平台账号 / 会员 v1 / 酒店电影只读 v1 / 充值管理
+    ├── Middleware/             # 会员下单同签名请求防重
     ├── Services/               # 卡世界供货、微信、支付宝、短信 服务
     ├── Models/                 # 短信验证码模型
     ├── Commands/               # 充值兜底查单 artisan 命令
@@ -115,6 +116,7 @@
 | `GET /api/open/v1/balance` | 签名 | 余额查询 |
 | `POST /api/open/v1/order/create` | 签名 | 创建订单（余额扣款 + 自动发货） |
 | `POST /api/open/v1/order/query` | 签名 | 订单查询（状态同步 + 失败退款） |
+| `/api/open/v1/hotel/*`、`/api/open/v1/movie/*` | 公开或签名 | 酒店、电影只读查询；本开源包不直接提供这两类扣款下单 |
 | `POST /api/open/platform/quick-start` | 公开 | 快速获取密钥：新手机号自动注册并生成首组密钥 |
 | `POST /api/open/platform/register` | - | 注册 |
 | `POST /api/open/platform/login-sms` | - | 验证码登录（自动注册） |

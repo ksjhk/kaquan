@@ -45,7 +45,7 @@ if (!function_exists('serviceOrderNo')) {
      */
     function serviceOrderNo($pre = '')
     {
-        $order_id_main = date('YmdHis') . rand(1000, 9999);
+        $order_id_main = date('YmdHis') . random_int(1000, 9999);
         $order_id_sum = 0;
         for ($i = 0, $len = strlen($order_id_main); $i < $len; $i++) {
             $order_id_sum += (int)substr($order_id_main, $i, 1);
@@ -72,15 +72,15 @@ if (!function_exists('curl_query')) {
         }
         $ch = curl_init();
         if ('https' == $protocol) {
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
         }
         curl_setopt($ch, CURLOPT_HTTPHEADER, $attributes);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
         curl_setopt($ch, CURLOPT_TIMEOUT, 60);
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
         if ($dataType === 'json') {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         } else {
@@ -101,6 +101,6 @@ if (!function_exists('generate_code')) {
      */
     function generate_code($length = 6)
     {
-        return rand(pow(10, ($length - 1)), pow(10, $length) - 1);
+        return random_int(pow(10, ($length - 1)), pow(10, $length) - 1);
     }
 }

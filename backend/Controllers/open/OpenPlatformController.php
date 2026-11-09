@@ -41,7 +41,7 @@ class OpenPlatformController extends Controller
         if (!$re || ($re['code'] ?? ERROR_UN_KNOW) !== SUCCESS) {
             return resp(ERROR_PARAMS, null, ($re['msg'] ?? '') ?: '发送失败');
         }
-        return resp(SUCCESS, !empty($re['debug_code']) ? ['debug_code' => $re['debug_code']] : null);
+        return resp(SUCCESS, null);
     }
 
     /**
@@ -171,6 +171,7 @@ class OpenPlatformController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
+            \Illuminate\Support\Facades\Log::error('open quick start failed', ['exception' => $e->getMessage()]);
             return resp(ERROR_UN_KNOW, null, '创建失败，请稍后再试');
         } finally {
             Cache::forget($lockKey);
@@ -197,13 +198,20 @@ class OpenPlatformController extends Controller
         if ($mobile === '' || $password === '') {
             return resp(ERROR_PARAMS, null, '手机号和密码不能为空');
         }
+        $loginLimitKey = 'open_password_login_' . md5((string)$request->ip() . '|' . $mobile);
+        if ((int)Cache::get($loginLimitKey, 0) >= 10) {
+            return resp(ERROR_PARAMS, null, '登录尝试过多，请15分钟后再试');
+        }
         $user = DB::table('open_user')->where('mobile', $mobile)->where('delete_time', 0)->first();
         if (!$user || !password_verify($password, $user->password)) {
+            Cache::add($loginLimitKey, 0, 900);
+            Cache::increment($loginLimitKey);
             return resp(ERROR_PARAMS, null, '手机号或密码错误');
         }
         if ((int)$user->status !== 1) {
             return resp(ERROR_PARAMS, null, '账号已被禁用');
         }
+        Cache::forget($loginLimitKey);
         $token = $this->issueToken((int)$user->id);
 
         return resp(SUCCESS, [
@@ -232,7 +240,7 @@ class OpenPlatformController extends Controller
         if (!$re || ($re['code'] ?? ERROR_UN_KNOW) !== SUCCESS) {
             return resp(ERROR_PARAMS, null, ($re['msg'] ?? '') ?: '发送失败');
         }
-        return resp(SUCCESS, !empty($re['debug_code']) ? ['debug_code' => $re['debug_code']] : null);
+        return resp(SUCCESS, null);
     }
 
     /**
@@ -396,11 +404,6 @@ class OpenPlatformController extends Controller
         $user = $this->authUser($request);
         if (!$user) return $this->authFail($request);
 
-        $active = DB::table('open_api_key')->where('user_id', $user->id)->where('status', 1)->count();
-        if ($active >= self::MAX_ACTIVE_KEYS) {
-            return resp(ERROR_PARAMS, null, '最多只能创建' . self::MAX_ACTIVE_KEYS . '个启用中的密钥');
-        }
-
         // 加价倍数：1.00~99.99，最多两位小数，缺省 1.00
         $priceRate = trim((string)$request->input('price_rate', ''));
         if ($priceRate === '') $priceRate = '1';
@@ -411,17 +414,28 @@ class OpenPlatformController extends Controller
         $now = time();
         $appKey = 'ak_' . $this->randomStr(21);   // ak_ 开头共 24 位
         $appSecret = 'sk_' . $this->randomStr(29); // sk_ 开头共 32 位
-        DB::table('open_api_key')->insert([
-            'user_id' => $user->id,
-            'app_key' => $appKey,
-            'app_secret' => $appSecret,
-            'status' => 1,
-            'remark' => mb_substr(trim((string)$request->input('remark', '')), 0, 100),
-            'price_rate' => number_format((float)$priceRate, 2, '.', ''),
-            'last_used_time' => 0,
-            'created_time' => $now,
-            'update_time' => $now,
-        ]);
+        // 创建和启停统一锁用户行，避免并发请求同时通过数量检查后超额创建。
+        $created = DB::transaction(function () use ($user, $appKey, $appSecret, $priceRate, $request, $now) {
+            DB::table('open_user')->where('id', $user->id)->lockForUpdate()->first();
+            $active = DB::table('open_api_key')->where('user_id', $user->id)->where('status', 1)->count();
+            if ($active >= self::MAX_ACTIVE_KEYS) return false;
+
+            DB::table('open_api_key')->insert([
+                'user_id' => $user->id,
+                'app_key' => $appKey,
+                'app_secret' => $appSecret,
+                'status' => 1,
+                'remark' => mb_substr(trim((string)$request->input('remark', '')), 0, 100),
+                'price_rate' => number_format((float)$priceRate, 2, '.', ''),
+                'last_used_time' => 0,
+                'created_time' => $now,
+                'update_time' => $now,
+            ]);
+            return true;
+        });
+        if (!$created) {
+            return resp(ERROR_PARAMS, null, '最多只能创建' . self::MAX_ACTIVE_KEYS . '个启用中的密钥');
+        }
 
         return resp(SUCCESS, [
             'app_key' => $appKey,
@@ -443,20 +457,24 @@ class OpenPlatformController extends Controller
         if (!$id || !in_array($status, [0, 1], true)) {
             return resp(ERROR_PARAMS, null, '参数错误');
         }
-        $key = DB::table('open_api_key')->where('id', $id)->where('user_id', $user->id)->first();
-        if (!$key) {
-            return resp(NULL_DATA, null, '密钥不存在');
-        }
-        if ($status === 1 && (int)$key->status !== 1) {
-            $active = DB::table('open_api_key')->where('user_id', $user->id)->where('status', 1)->count();
-            if ($active >= self::MAX_ACTIVE_KEYS) {
-                return resp(ERROR_PARAMS, null, '最多只能启用' . self::MAX_ACTIVE_KEYS . '个密钥');
+        $result = DB::transaction(function () use ($user, $id, $status) {
+            DB::table('open_user')->where('id', $user->id)->lockForUpdate()->first();
+            $key = DB::table('open_api_key')->where('id', $id)->where('user_id', $user->id)->first();
+            if (!$key) return 'missing';
+            if ($status === 1 && (int)$key->status !== 1) {
+                $active = DB::table('open_api_key')->where('user_id', $user->id)->where('status', 1)->count();
+                if ($active >= self::MAX_ACTIVE_KEYS) return 'limit';
             }
+            DB::table('open_api_key')->where('id', $id)->where('user_id', $user->id)->update([
+                'status' => $status,
+                'update_time' => time(),
+            ]);
+            return 'ok';
+        });
+        if ($result === 'missing') return resp(NULL_DATA, null, '密钥不存在');
+        if ($result === 'limit') {
+            return resp(ERROR_PARAMS, null, '最多只能启用' . self::MAX_ACTIVE_KEYS . '个密钥');
         }
-        DB::table('open_api_key')->where('id', $id)->update([
-            'status' => $status,
-            'update_time' => time(),
-        ]);
         return resp(SUCCESS, []);
     }
 

@@ -160,7 +160,8 @@
       <p>1. 取除 <code>sign</code> 外的所有请求参数（含 app_key、timestamp 及业务参数），<b>空值参数跳过不参与</b>；<br />
       2. 按参数名<b>升序</b>排序，拼接为 <code>k1=v1&amp;k2=v2</code> 形式；<br />
       3. 末尾追加 <code>&amp;secret=app_secret</code>；<br />
-      4. 对整串做 <b>MD5</b>（32 位小写）即为 sign。</p>
+      4. 对整串做 <b>MD5</b>（32 位小写）即为 sign；数组与对象跳过。</p>
+      <div class="doc-tip"><b>query 和 body 混用时，两处参数必须合并后一起签名。</b>例如鉴权参数放 query、<code>cityId</code> 放 JSON body 时，<code>cityId</code> 仍要参与签名；只签 query 会返回「签名错误」。全部放 query、全部放 JSON body、全部放表单均可，推荐放在同一位置。</div>
       <div class="doc-pre">// 示例：假设业务参数 goods_id=4251
 // 密钥计算串：
 app_key=ak_demo123&amp;goods_id=4251&amp;timestamp=1792464645&amp;secret=sk_demoSecret

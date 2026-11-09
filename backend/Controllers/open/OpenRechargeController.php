@@ -161,14 +161,16 @@ class OpenRechargeController extends Controller
     public function notifyAck(Request $request)
     {
         // 微信 V2 回调为 XML；支付宝为表单。尽力解析出 out_trade_no 后主动查单
+        $raw = file_get_contents('php://input', false, null, 0, 65537);
+        $raw = $raw === false ? '' : $raw;
+        $isXml = $raw !== '' && strpos($raw, '<xml>') !== false;
         try {
             $orderNo = '';
-            $raw = file_get_contents('php://input');
-            if ($raw && strpos($raw, '<xml>') !== false) {
-                $xml = simplexml_load_string($raw, 'SimpleXMLElement', LIBXML_NOCDATA);
+            if ($isXml && strlen($raw) <= 65536) {
+                $xml = simplexml_load_string($raw, 'SimpleXMLElement', LIBXML_NOCDATA | LIBXML_NONET);
                 $data = $xml ? json_decode(json_encode($xml), true) : [];
                 $orderNo = (string)($data['out_trade_no'] ?? '');
-            } else {
+            } elseif (!$isXml) {
                 $orderNo = (string)$request->input('out_trade_no', '');
             }
             if ($orderNo !== '') {
@@ -184,8 +186,7 @@ class OpenRechargeController extends Controller
             return response('<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>', 200, ['Content-Type' => 'application/xml']);
         }
         // 微信 XML 无 Content-Type 也按 XML 应答；支付宝要求纯文本 success
-        $raw = file_get_contents('php://input');
-        if ($raw && strpos($raw, '<xml>') !== false) {
+        if ($isXml) {
             return response('<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>', 200, ['Content-Type' => 'application/xml']);
         }
         return response('success', 200)->header('Content-Type', 'text/plain');
@@ -280,7 +281,8 @@ class OpenRechargeController extends Controller
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
-            return resp(ERROR_UN_KNOW, null, '操作失败：' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('open admin balance adjust failed', ['admin_id' => (int)$admin->id, 'exception' => $e->getMessage()]);
+            return resp(ERROR_UN_KNOW, null, '操作失败，请稍后重试');
         }
         return resp(SUCCESS, ['balance' => $after]); // 分
     }

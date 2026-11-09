@@ -36,11 +36,11 @@ class SmsService
         // 同 IP 每小时最多 20 条验证码
         try {
             $ipKey = 'sms_ip_' . md5((string)$ip);
-            $ipCnt = (int)Cache::get($ipKey, 0);
-            if ($ipCnt >= 20) {
+            Cache::add($ipKey, 0, 3600);
+            $ipCnt = Cache::increment($ipKey);
+            if ($ipCnt === false || $ipCnt > 20) {
                 return ['code' => ERROR_UN_KNOW, 'msg' => '发送过于频繁，请稍后再试'];
             }
-            Cache::put($ipKey, $ipCnt + 1, 3600);
         } catch (\Exception $e) {}
 
         $captcha = generate_code();
@@ -54,15 +54,16 @@ class SmsService
         if (!$id) {
             return ['code' => ERROR_UN_KNOW, 'msg' => '发送失败'];
         }
-        // 短信三级兜底：自己的腾讯云短信（SMS_* 已配置）→ 卡世界托管短信转发（开箱即用）
-        // → 调试模式（转发也不可达时，验证码随接口返回，前端自动填入）。
+        // 短信通道：自己的腾讯云短信（SMS_* 已配置）→ 卡世界托管短信转发（开箱即用）。
+        // 通道失败必须失败关闭，验证码绝不通过接口返回。
         if (!(string)env('SMS_SECRET_ID') || !(string)env('SMS_SECRET_KEY')) {
             $relay = $this->sendViaRelay($mobile, $captcha);
             if ($relay['ok']) {
                 return ['code' => SUCCESS, 'msg' => '发送成功'];
             }
-            \Illuminate\Support\Facades\Log::warning('sms relay fail, debug mode: captcha returned via api', ['mobile' => $mobile, 'type' => $type, 'relay_msg' => $relay['msg'] ?? '']);
-            return ['code' => SUCCESS, 'msg' => '调试模式：短信通道不可用，验证码已直接返回', 'debug_code' => $captcha];
+            VerifyCaptcha::query()->where('id', $id)->update(['update_time' => time(), 'delete_time' => time()]);
+            \Illuminate\Support\Facades\Log::warning('sms relay failed', ['mobile' => $mobile, 'type' => $type]);
+            return ['code' => ERROR_UN_KNOW, 'msg' => '短信发送失败，请稍后重试'];
         }
         $re = (new TencentSmsService())->sendCaptcha($mobile, $captcha);
         if (empty($re['ok'])) {
@@ -71,7 +72,8 @@ class SmsService
                 'update_time' => time(),
                 'delete_time' => time(),
             ]);
-            return ['code' => ERROR_UN_KNOW, 'msg' => $re['msg'] ?? '发送失败'];
+            \Illuminate\Support\Facades\Log::warning('sms provider failed', ['mobile' => $mobile, 'type' => $type]);
+            return ['code' => ERROR_UN_KNOW, 'msg' => '短信发送失败，请稍后重试'];
         }
         return ['code' => SUCCESS, 'msg' => '发送成功'];
     }
@@ -110,6 +112,11 @@ class SmsService
      */
     public function verifyCaptcha($mobile, $captcha, $type)
     {
+        $attemptKey = 'sms_verify_attempts_' . md5((string)$mobile . '|' . (string)$type);
+        Cache::add($attemptKey, 0, 600);
+        $attempts = Cache::increment($attemptKey);
+        if ($attempts === false || $attempts > 10) return false;
+
         $data = VerifyCaptcha::query()
             ->where('mobile', $mobile)
             ->where('delete_time', 0)
@@ -118,6 +125,12 @@ class SmsService
             ->first();
         if (!$data) return false;
         if ($data['created_time'] * 1 + 60 * 5 < time()) return false;
-        return $captcha == $data['code'];
+        if (!hash_equals((string)$data['code'], (string)$captcha)) return false;
+
+        // 条件更新保证并发请求也只有一次校验成功，成功后立即作废。
+        return VerifyCaptcha::query()->where('id', $data['id'])->where('delete_time', 0)->update([
+            'update_time' => time(),
+            'delete_time' => time(),
+        ]) === 1;
     }
 }
