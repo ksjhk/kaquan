@@ -2,6 +2,31 @@
 
 会员权益卡券、酒店与电影票货源 API 接入的开源实现：卡券下单、支付、到账发货全自动，配套代理商控制台与余额充值体系。
 
+## DeepSeek Harness 插件
+
+本仓库同时提供会员权益 DSH 插件，保留原开放平台源码与文档。插件只适用于 **DeepSeek Harness（DSH）**，普通 DeepSeek 手机 App 和网页聊天版不能安装。纯 JavaScript，无 TypeScript 或构建步骤。
+
+```bash
+dsh plugin --profile web add github:ksjhk/kaquan
+```
+
+安装后提供 5 个工具：会员货源列表、商品详情、余额查询、订单查询、创建充值订单。货源列表和详情匿名可查；余额与订单工具需要代理自己的密钥：
+
+```bash
+export KASHIJIE_APP_KEY='你的 app_key'
+export KASHIJIE_APP_SECRET='你的 app_secret'
+```
+
+Mock 或自托管接口可通过 `KASHIJIE_MEMBER_API_BASE_URL` 覆盖默认 API 根地址。
+
+自然语言使用示例：
+
+> 查询卡世界会员权益货源，整理商品名称、规格和代理成本价。
+>
+> 先核对商品和充值账号，等我明确同意后再创建订单。
+
+**创建订单会真实扣除代理预充值余额。** 插件要求下单工具显式传入 `confirm: true`，未确认不会发请求；网络超时先查单，不重复下单。完整字段与签名规则仍见 [API 文档](docs/api.md)。
+
 ## 这是什么
 
 卡世界开放平台把"会员卡券货源"封装成一套标准 HTTP API，并提供完整的代理商自助体系：
