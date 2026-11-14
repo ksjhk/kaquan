@@ -2,6 +2,8 @@
 
 会员权益卡券、酒店与电影票货源 API 接入的开源实现：卡券下单、支付、到账发货全自动，配套代理商控制台与余额充值体系。
 
+![卡世界会员权益货源：商品信息、供货底价与推广佣金](screenshots/open-platform-membership.jpg)
+
 ## DeepSeek Harness 插件
 
 本仓库同时提供会员权益 DSH 插件，保留原开放平台源码与文档。插件只适用于 **DeepSeek Harness（DSH）**，普通 DeepSeek 手机 App 和网页聊天版不能安装。纯 JavaScript，无 TypeScript 或构建步骤。
